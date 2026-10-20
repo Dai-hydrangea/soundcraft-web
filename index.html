@@ -7318,10 +7318,15 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
     return fr;
   }
   function beatSecNow(){ return 60 / (typeof rhythmBpm !== 'undefined' ? rhythmBpm : 80); }
+  // UIリード: iOS uiLeadHost=60ms(音出力レイテンシ+ディスプレイ更新)相当。
+  // Webはブラウザ出力バッファ分も遅れるので outputLatency を足して振り子を先回りさせ、
+  // 描画遅延で「音より遅れて見える」のを相殺する。必要なら PEND_LEAD_BASE を微調整。
+  var PEND_LEAD_BASE = 0.060;
+  function pendLeadSec(){ var ol = (audioCtx && audioCtx.outputLatency) || 0; return PEND_LEAD_BASE + ol; }
   function syncPendTime(){
     if (!pendAnims.length || typeof audioCtx === 'undefined' || !audioCtx) return;
     var dur = 2 * beatSecNow() * 1000;
-    var ct = ((audioCtx.currentTime / beatSecNow()) % 2 / 2) * dur;
+    var ct = (((audioCtx.currentTime + pendLeadSec()) / beatSecNow()) % 2 / 2) * dur;
     pendAnims.forEach(function(a){ try { a.currentTime = ct; } catch(e){} });
   }
   function startPendAnim(){
