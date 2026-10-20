@@ -126,13 +126,12 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
 .metro-bpm-num strong { font-size: 34px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 .metro-bpm-num small { font-size: 11px; color: var(--text2); margin-top: 3px; letter-spacing: 1px; }
 .metro-mini-hint { text-align: center; font-size: 11px; color: var(--text2); margin-top: 12px; }
-/* 振り子 (iOS式: 拍で左右端・中央通過) */
-#metro-pendulum { display: block; width: 160px; height: 112px; margin: 2px auto 10px; overflow: visible; }
-.pend-rod { stroke: var(--text2); stroke-width: 2.5; stroke-linecap: round; }
-.pend-bob { fill: var(--text); }
-.pend-pivot { fill: var(--text2); }
-.pend-base { stroke: var(--border); stroke-width: 3; stroke-linecap: round; }
-#metro-pend-arm { transform-box: view-box; transform-origin: 80px 102px; will-change: transform; }
+/* 振り子 (iOS v4.7式: 拍で中央通過・端で減速 / GPU合成CSS transformで滑らか) */
+#metro-pendulum { position: relative; width: 160px; height: 104px; margin: 2px auto 10px; }
+.pend-base  { position: absolute; left: 50%; bottom: 8px; width: 56px; height: 3px; margin-left: -28px; border-radius: 2px; background: var(--border); }
+.pend-pivot { position: absolute; left: 50%; bottom: 5px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: var(--text2); z-index: 2; }
+.pend-arm   { position: absolute; left: 50%; bottom: 9px; width: 3px; height: 82px; margin-left: -1.5px; transform-origin: 50% 100%; will-change: transform; background: var(--text2); border-radius: 2px; }
+.pend-bob   { position: absolute; top: -7px; left: 50%; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
 
 /* ===== 計測タブ ===== */
 #now-display { text-align: center; }
@@ -384,14 +383,11 @@ tr:last-child td { border-bottom: none; }
       <h2 data-i18n="metro_title" style="margin:0">メトロノーム</h2>
       <span id="metro-mini-dots" class="metro-mini-dots">○○○○</span>
     </div>
-    <svg id="metro-pendulum" viewBox="0 0 160 112" aria-hidden="true">
-      <g id="metro-pend-arm">
-        <line class="pend-rod" x1="80" y1="102" x2="80" y2="22"/>
-        <circle class="pend-bob" cx="80" cy="26" r="9"/>
-      </g>
-      <line class="pend-base" x1="54" y1="102" x2="106" y2="102"/>
-      <circle class="pend-pivot" cx="80" cy="102" r="4.5"/>
-    </svg>
+    <div id="metro-pendulum" aria-hidden="true">
+      <div class="pend-base"></div>
+      <div class="pend-arm" id="metro-pend-arm"><span class="pend-bob"></span></div>
+      <div class="pend-pivot"></div>
+    </div>
     <div class="metro-mini-row">
       <button id="metro-mini-toggle" class="metro-play-btn" aria-label="Play/Stop">▶</button>
       <div class="metro-bpm-box">
@@ -7243,20 +7239,23 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
   var arm    = document.getElementById('metro-pend-arm');
   if (!toggle) return;
 
-  // ===== 振り子アニメ (iOS式: angle = maxDeg × cos(π×phase)。拍で左右端・中央通過) =====
-  var MAX_DEG = 32, pendRAF = null;
-  function setArm(deg){ if (arm) arm.style.transform = 'rotate(' + deg.toFixed(2) + 'deg)'; }
+  // ===== 振り子アニメ (iOS v4.7 PendulumView 準拠) =====
+  // apexモード: angle = maxDeg × cos(π×(phase+0.5))。
+  //  → 拍頭で棒が真っ直ぐ(中央・最速通過)、拍の中間で端に達して減速。クリック音=中央通過。
+  // phase = audioCtx時刻/beatSec。エンジンがbeatSecグリッドに整列開始するので拍=中央が一致。
+  var MAX_DEG = 28, pendRAF = null, pendStart = 0;
+  function setArm(deg){ if (arm) arm.style.transform = 'rotate(' + deg.toFixed(3) + 'deg)'; }
   function pendFrame(){
     var playing = (typeof rhythmActive !== 'undefined') && rhythmActive;
     if (!playing || typeof audioCtx === 'undefined' || !audioCtx) { pendRAF = null; setArm(0); return; }
-    // audioCtx時刻を直接位相に。エンジンは beatSec グリッドに整列して開始するので
-    // cos(π×t/beatSec) の端(=±1)がクリック音の拍と一致する。
     var beatSec = 60 / rhythmBpm;
-    var deg = MAX_DEG * Math.cos(Math.PI * (audioCtx.currentTime / beatSec));
+    // iOS同様、開始直後0.25sは中央静止(「中央から始まる」を視認)
+    var t = audioCtx.currentTime;
+    var deg = (t - pendStart < 0.25) ? 0 : MAX_DEG * Math.cos(Math.PI * (t / beatSec + 0.5));
     setArm(deg);
     pendRAF = requestAnimationFrame(pendFrame);
   }
-  function startPend(){ if (pendRAF == null) pendRAF = requestAnimationFrame(pendFrame); }
+  function startPend(){ if (pendRAF == null) { pendStart = (typeof audioCtx!=='undefined'&&audioCtx)?audioCtx.currentTime:0; pendRAF = requestAnimationFrame(pendFrame); } }
 
   // 他スクリプトから呼べるようグローバルに公開(updateBpmUI/startRhythm/stopRhythmが呼ぶ)
   window.syncMetroMini = function(){
