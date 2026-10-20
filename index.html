@@ -7239,23 +7239,57 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
   var arm    = document.getElementById('metro-pend-arm');
   if (!toggle) return;
 
-  // ===== 振り子アニメ (iOS v4.7 PendulumView 準拠) =====
-  // apexモード: angle = maxDeg × cos(π×(phase+0.5))。
-  //  → 拍頭で棒が真っ直ぐ(中央・最速通過)、拍の中間で端に達して減速。クリック音=中央通過。
-  // phase = audioCtx時刻/beatSec。エンジンがbeatSecグリッドに整列開始するので拍=中央が一致。
-  var MAX_DEG = 28, pendRAF = null, pendStart = 0;
-  function setArm(deg){ if (arm) arm.style.transform = 'rotate(' + deg.toFixed(3) + 'deg)'; }
-  function pendFrame(){
-    var playing = (typeof rhythmActive !== 'undefined') && rhythmActive;
-    if (!playing || typeof audioCtx === 'undefined' || !audioCtx) { pendRAF = null; setArm(0); return; }
-    var beatSec = 60 / rhythmBpm;
-    // iOS同様、開始直後0.25sは中央静止(「中央から始まる」を視認)
-    var t = audioCtx.currentTime;
-    var deg = (t - pendStart < 0.25) ? 0 : MAX_DEG * Math.cos(Math.PI * (t / beatSec + 0.5));
-    setArm(deg);
-    pendRAF = requestAnimationFrame(pendFrame);
+  // ===== 振り子アニメ (iOS v4.7 PendulumView .edges モード準拠) =====
+  // iOSデフォルト = 端で鳴る(機械式): 等速(三角波)で端まで進み edgeSharpness で端ほど
+  // 傾きを急にして「切れ」を出す。ringLead ぶん位相を遅らせ拍頭の手前で端に達する。
+  //   angle = maxDeg × edgeCurveNorm(phase),  phase = 累積拍(2拍周期)
+  // 滑らかさ: rAFで毎フレームJS更新するとメインスレッド負荷でカクつくため、
+  //   Web Animations API でキーフレーム化 → **コンポジタスレッド駆動**(メイン詰まりと無関係)。
+  var MAX_DEG = 28, EDGE_SHARP = 0.18, RING_LEAD = 0.03;
+  var pendAnim = null, pendResync = null;
+
+  function edgeCurveNorm(phase){
+    var p = (phase - RING_LEAD) % 2; if (p < 0) p += 2;
+    var halfIdx = Math.floor(p);
+    var u = p - halfIdx;                 // 片道進行 0..1
+    var dir = (halfIdx % 2 === 0) ? 1 : -1;
+    var xx = 2 * u - 1;                  // -1(出発端) → +1(到達端)
+    var target = (1 - EDGE_SHARP) * xx + EDGE_SHARP * xx * xx * xx;
+    return dir * target;
   }
-  function startPend(){ if (pendRAF == null) { pendStart = (typeof audioCtx!=='undefined'&&audioCtx)?audioCtx.currentTime:0; pendRAF = requestAnimationFrame(pendFrame); } }
+  function buildKeyframes(){
+    var N = 144, fr = [];
+    for (var i = 0; i <= N; i++){
+      var deg = MAX_DEG * edgeCurveNorm((i / N) * 2);
+      fr.push({ transform: 'rotate(' + deg.toFixed(3) + 'deg)', offset: i / N });
+    }
+    return fr;
+  }
+  function beatSecNow(){ return 60 / (typeof rhythmBpm !== 'undefined' ? rhythmBpm : 80); }
+  function syncPendTime(){
+    if (!pendAnim || typeof audioCtx === 'undefined' || !audioCtx) return;
+    var dur = 2 * beatSecNow() * 1000;
+    var phase = (audioCtx.currentTime / beatSecNow()) % 2;
+    try { pendAnim.currentTime = (phase / 2) * dur; } catch(e){}
+  }
+  function startPendAnim(){
+    if (!arm) return;
+    stopPendAnim(true);
+    pendAnim = arm.animate(buildKeyframes(), { duration: 2 * beatSecNow() * 1000, iterations: Infinity, easing: 'linear' });
+    syncPendTime();
+    // クロック微ドリフト補正(2s毎・コンポジタ駆動は維持)
+    pendResync = setInterval(syncPendTime, 2000);
+  }
+  function retimePendAnim(){ // BPM変更時: キーフレームは位相空間なので duration だけ更新
+    if (!pendAnim) return;
+    try { pendAnim.effect.updateTiming({ duration: 2 * beatSecNow() * 1000 }); } catch(e){}
+    syncPendTime();
+  }
+  function stopPendAnim(keepArm){
+    if (pendResync){ clearInterval(pendResync); pendResync = null; }
+    if (pendAnim){ try { pendAnim.cancel(); } catch(e){} pendAnim = null; }
+    if (!keepArm && arm) arm.style.transform = 'rotate(0deg)';
+  }
 
   // 他スクリプトから呼べるようグローバルに公開(updateBpmUI/startRhythm/stopRhythmが呼ぶ)
   window.syncMetroMini = function(){
@@ -7266,7 +7300,8 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
     if (dotsEl && !playing && typeof rhythmMeter !== 'undefined') {
       dotsEl.textContent = '○'.repeat(rhythmMeter);
     }
-    if (playing) startPend(); else setArm(0);
+    if (playing) { if (!pendAnim) startPendAnim(); else retimePendAnim(); }
+    else stopPendAnim();
   };
 
   async function ensureAudioForMetro(){
