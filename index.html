@@ -58,7 +58,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, system-ui, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Segoe UI', Roboto, sans-serif; font-size: 14px; min-height: 100vh;
   /* iPhoneのノッチ・ホームバー対応 */
   padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: calc(68px + env(safe-area-inset-bottom)); /* 下部タブバー分 */
 }
 h1 { font-size: 20px; font-weight: 600; }
 h2 { font-size: 16px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
@@ -77,10 +77,20 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
 #a4-slider::-moz-range-thumb { width: 16px; height: 16px; border: none; border-radius: 50%; background: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.25); cursor: pointer; }
 
 /* Tabs — sticky below header */
-#tabs { position: sticky; top: 49px; z-index: 99; display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 12px; overflow-x: auto; }
-.tab { padding: 10px 10px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text2); font-size: 12px; font-weight: 500; transition: all .15s; white-space: nowrap; }
-.tab:hover { color: var(--text); }
-.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+/* iOS風 下部アイコンタブバー */
+#tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 100; display: flex;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: saturate(1.5) blur(16px); -webkit-backdrop-filter: saturate(1.5) blur(16px);
+  border-top: 1px solid var(--border);
+  padding: 6px 2px calc(4px + env(safe-area-inset-bottom)); }
+.tab { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 3px 1px; border: none; background: none; cursor: pointer;
+  color: var(--text2); font-size: 10px; font-weight: 500; line-height: 1.15;
+  -webkit-tap-highlight-color: transparent; transition: color .15s; }
+.tab svg { width: 23px; height: 23px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.tab span { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tab.active { color: var(--accent); }
+.tab:active { opacity: .6; }
 
 /* Panels */
 .panel { display: none; padding: 12px 16px; max-width: 700px; margin: 0 auto; }
@@ -296,15 +306,15 @@ tr:last-child td { border-bottom: none; }
 })();
 </script>
 
-<div id="tabs">
-  <div class="tab active" data-tab="measure" data-i18n="tab_tuner">チューナー</div>
-  <div class="tab" data-tab="rhythm" data-i18n="tab_rhythm">リズム</div>
-  <div class="tab" data-tab="ens" data-i18n="tab_harmony">ハーモニー</div>
-  <div class="tab" data-tab="attack" data-i18n="tab_attack">アタック</div>
-  <div class="tab" data-tab="recorder">レコーダー</div>
-  <div class="tab" data-tab="report" data-i18n="tab_report">レポート</div>
-  <div class="tab" data-tab="settings" data-i18n="tab_settings">Settings</div>
-</div>
+<nav id="tabbar">
+  <button class="tab active" data-tab="measure"><svg viewBox="0 0 24 24"><path d="M9 3v7a3 3 0 0 0 6 0V3"/><path d="M12 13v8"/></svg><span data-i18n="tab_tuner">チューナー</span></button>
+  <button class="tab" data-tab="rhythm"><svg viewBox="0 0 24 24"><path d="M9 3h6l3 18H6z"/><path d="M12 7l3.5 10"/></svg><span data-i18n="tab_rhythm">リズム</span></button>
+  <button class="tab" data-tab="ens"><svg viewBox="0 0 24 24"><circle cx="7" cy="17" r="2.4"/><circle cx="16.5" cy="15" r="2.4"/><path d="M9.4 17V6.5l9.5-2V15"/></svg><span data-i18n="tab_harmony">ハーモニー</span></button>
+  <button class="tab" data-tab="attack"><svg viewBox="0 0 24 24"><path d="M2 12h4l3-7 4 14 3-9 2 2h4"/></svg><span data-i18n="tab_attack">アタック</span></button>
+  <button class="tab" data-tab="recorder"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg><span>録音</span></button>
+  <button class="tab" data-tab="report"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><rect x="5" y="11" width="3.4" height="7"/><rect x="10.3" y="6" width="3.4" height="12"/><rect x="15.6" y="13" width="3.4" height="5"/></svg><span data-i18n="tab_report">レポート</span></button>
+  <button class="tab" data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg><span data-i18n="tab_settings">設定</span></button>
+</nav>
 
 <!-- 計測タブ -->
 <div class="panel active" id="panel-measure">
@@ -2025,7 +2035,8 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 // sticky要素のtop値をヘッダー＋タブバーの高さに合わせる
 function updateStickyTop() {
-  const tabs = document.getElementById('tabs');
+  // タブは下部バーに移動したので、sticky要素はヘッダー直下に合わせる
+  const tabs = document.getElementById('header');
   if (!tabs) return;
   const topVal = tabs.getBoundingClientRect().bottom;
   document.querySelectorAll('.tab-sticky').forEach(el => {
@@ -6891,7 +6902,7 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
           ja: '楽器を吹くと音名がリアルタイムに表示されます。メーターの針が中央にくれば音程ぴったり！',
           en: 'Play your instrument to see note name in real-time. Center the meter needle for perfect pitch!',
           zh: '演奏时实时显示音名。表盘指针居中表示音准！' },
-        { target: '#tabs', pos: 'bottom',
+        { target: '#tabbar', pos: 'top',
           ja: 'タブを切り替えて色々な練習ができます。リズム、ハーモニー、アタック、レコーダーなど！',
           en: 'Switch tabs for different modes: Rhythm, Harmony, Attack, Recorder and more!',
           zh: '切换标签页：节奏、和声、起音、录音等多种模式！' },
