@@ -219,6 +219,11 @@ tr:last-child td { border-bottom: none; }
 #panel-ens .ens-mode-row .btn.sel { background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
 #panel-ens #ens-chord-display { font-size: 15px; }
 
+/* その他タブ サブナビ (アタック/録音) = iOSセグメント風 */
+.other-subnav { display: flex; gap: 0; background: var(--surface2); border-radius: 11px; padding: 3px; max-width: 420px; margin: 0 auto 6px; }
+.other-subnav .btn { flex: 1; background: transparent; color: var(--text2); border-radius: 8px; box-shadow: none; }
+.other-subnav .btn.sel { background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+
 /* Reset btn */
 #reset-data { margin-top: 16px; }
 
@@ -364,13 +369,30 @@ tr:last-child td { border-bottom: none; }
 
 <nav id="tabbar">
   <button class="tab active" data-tab="measure"><svg viewBox="0 0 24 24"><path d="M9 3v7a3 3 0 0 0 6 0V3"/><path d="M12 13v8"/></svg><span data-i18n="tab_tuner">チューナー</span></button>
-  <button class="tab" data-tab="rhythm"><svg viewBox="0 0 24 24"><path d="M9 3h6l3 18H6z"/><path d="M12 7l3.5 10"/></svg><span data-i18n="tab_rhythm">リズム</span></button>
-  <button class="tab" data-tab="ens"><svg viewBox="0 0 24 24"><circle cx="7" cy="17" r="2.4"/><circle cx="16.5" cy="15" r="2.4"/><path d="M9.4 17V6.5l9.5-2V15"/></svg><span data-i18n="tab_harmony">ハーモニー</span></button>
-  <button class="tab" data-tab="attack"><svg viewBox="0 0 24 24"><path d="M2 12h4l3-7 4 14 3-9 2 2h4"/></svg><span data-i18n="tab_attack">アタック</span></button>
-  <button class="tab" data-tab="recorder"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg><span>録音</span></button>
-  <button class="tab" data-tab="report"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><rect x="5" y="11" width="3.4" height="7"/><rect x="10.3" y="6" width="3.4" height="12"/><rect x="15.6" y="13" width="3.4" height="5"/></svg><span data-i18n="tab_report">レポート</span></button>
+  <button class="tab" data-tab="rhythm"><svg viewBox="0 0 24 24"><path d="M9 3h6l3 18H6z"/><path d="M12 7l3.5 10"/></svg><span data-i18n="metro_title">メトロノーム</span></button>
+  <button class="tab" data-tab="scale"><svg viewBox="0 0 24 24"><circle cx="7" cy="17" r="2.4"/><circle cx="16.5" cy="15" r="2.4"/><path d="M9.4 17V6.5l9.5-2V15"/></svg><span data-i18n="tab_scale">基礎練</span></button>
+  <button class="tab" data-tab="ens"><svg viewBox="0 0 24 24"><path d="M3 12v0M6 9v6M9 5v14M12 8v8M15 4v16M18 9v6M21 11v2"/></svg><span data-i18n="tab_harmony">ハーモニー</span></button>
+  <button class="tab" data-tab="other"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><circle cx="7.6" cy="12" r=".7"/><circle cx="12" cy="12" r=".7"/><circle cx="16.4" cy="12" r=".7"/></svg><span data-i18n="tab_other">その他</span></button>
   <button class="tab" data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg><span data-i18n="tab_settings">設定</span></button>
 </nav>
+
+<!-- 基礎練タブ (流れる楽譜: 準備中プレースホルダ) -->
+<div class="panel" id="panel-scale">
+  <div class="panel-title" data-i18n="tab_scale">基礎練</div>
+  <div class="card" style="text-align:center; padding:44px 18px;">
+    <div style="font-size:42px; margin-bottom:12px; opacity:.45;">🎼</div>
+    <p style="color:var(--text2); font-size:14px; line-height:1.6;" data-i18n="scale_coming_soon">基礎練（流れる楽譜）は準備中です。</p>
+  </div>
+</div>
+
+<!-- その他タブ (アタック / 録音 のサブナビ) -->
+<div class="panel" id="panel-other">
+  <div class="panel-title" data-i18n="tab_other">その他</div>
+  <div class="other-subnav">
+    <button class="btn sel" data-sub="attack" data-i18n="tab_attack">アタック</button>
+    <button class="btn" data-sub="recorder">録音</button>
+  </div>
+</div>
 
 <!-- 計測タブ -->
 <div class="panel active" id="panel-measure">
@@ -666,7 +688,7 @@ tr:last-child td { border-bottom: none; }
 
 <!-- アタックタブ -->
 <div class="panel" id="panel-attack">
-  <div class="card" id="attack-graph-wrap">
+  <div class="card" id="attack-graph-wrap" style="display:none">
     <h2 data-i18n="debug_graph">デバッググラフ</h2>
     <canvas class="sub-graph-canvas" id="attack-graph-canvas"></canvas>
   </div>
@@ -1138,6 +1160,21 @@ const I18N = {
     "ja": "タップで開始／詳しい設定はリズムタブへ",
     "en": "Tap to start — more options in Rhythm tab",
     "zh": "点击开始／详细设置在节奏标签页"
+  },
+  "tab_scale": {
+    "ja": "基礎練",
+    "en": "Scales",
+    "zh": "基础练习"
+  },
+  "tab_other": {
+    "ja": "その他",
+    "en": "More",
+    "zh": "其他"
+  },
+  "scale_coming_soon": {
+    "ja": "基礎練（流れる楽譜）は準備中です。",
+    "en": "Scale practice (flowing score) is coming soon.",
+    "zh": "基础练习（流动乐谱）即将推出。"
   },
   "tab_settings": {
     "ja": "設定",
@@ -2133,7 +2170,22 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (tab.dataset.tab === 'attack') startAttackViz();
     else stopAttackViz();
     if (tab.dataset.tab === 'report') renderReport();
+    // その他タブ: サブ(アタック/録音)を表示
+    if (tab.dataset.tab === 'other') showOtherSub(window._otherSub || 'attack');
   });
+});
+
+// その他タブ: アタック / 録音 のサブナビ (両パネルを.activeで切替表示)
+function showOtherSub(which){
+  window._otherSub = which;
+  document.querySelectorAll('.other-subnav button').forEach(b => b.classList.toggle('sel', b.dataset.sub === which));
+  const pa = document.getElementById('panel-attack'), pr = document.getElementById('panel-recorder');
+  if (pa) pa.classList.toggle('active', which === 'attack');
+  if (pr) pr.classList.toggle('active', which === 'recorder');
+  if (which === 'attack') startAttackViz(); else stopAttackViz();
+}
+document.querySelectorAll('.other-subnav button').forEach(b => {
+  b.addEventListener('click', () => showOtherSub(b.dataset.sub));
 });
 
 // sticky要素のtop値をヘッダー＋タブバーの高さに合わせる
