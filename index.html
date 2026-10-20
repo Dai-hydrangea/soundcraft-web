@@ -135,14 +135,20 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
 
 /* ===== 計測タブ ===== */
 #now-display { text-align: center; }
-#now-note { font-size: 72px; font-weight: 700; color: var(--accent); line-height: 1; min-height: 80px; }
-#now-cents { display: none; }
-#tuner-canvas { width: 100%; height: 60px; border-radius: 4px; }
+/* チューナー音名表示をiOS風に(見出しなし・音名が主役) */
+#now-display h2 { display: none; }
+#now-display #rms-display { display: none; }
+#now-note { font-size: 86px; font-weight: 700; color: var(--accent); line-height: 1; min-height: 94px; letter-spacing: -1px; margin-top: 6px; }
+#now-cents { display: block; text-align: center; font-size: 19px; font-weight: 600; margin: 0 0 4px; color: var(--text2); font-variant-numeric: tabular-nums; }
+#now-cents.center { color: var(--accent2); }
+#now-cents.sharp  { color: var(--danger); }
+#now-cents.flat   { color: #4a90d0; }
+#tuner-canvas { width: 100%; height: 62px; }
 
-#state-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-top: 8px; }
-#state-badge.silent { background: #30363d; color: var(--text2); }
-#state-badge.attack { background: #7d4e00; color: #ffa657; }
-#state-badge.stable { background: #1a4a1a; color: var(--accent2); }
+#state-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: .5px; margin-top: 6px; }
+#state-badge.silent { background: var(--surface2); color: var(--text2); }
+#state-badge.attack { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+#state-badge.stable { background: color-mix(in srgb, var(--accent2) 22%, transparent); color: var(--accent2); }
 
 /* Note table */
 #note-table-wrap { overflow-y: auto; max-height: 280px; }
@@ -1921,7 +1927,13 @@ setAudioSessionType('playback');
 // テーマ切替時に再取得できるよう関数化。
 function cssVar(name, fallback){ try { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback; } catch(e){ return fallback; } }
 let ACCENT = cssVar('--accent', '#458580');
-document.getElementById('theme-toggle')?.addEventListener('click', function(){ setTimeout(function(){ ACCENT = cssVar('--accent', '#458580'); }, 0); });
+let C_BORDER = cssVar('--border', '#30363d');
+let C_TEXT2  = cssVar('--text2', '#8b949e');
+document.getElementById('theme-toggle')?.addEventListener('click', function(){ setTimeout(function(){
+  ACCENT = cssVar('--accent', '#458580');
+  C_BORDER = cssVar('--border', '#30363d');
+  C_TEXT2  = cssVar('--text2', '#8b949e');
+}, 0); });
 
 let audioCtx = null;
 let analyser = null;
@@ -2940,22 +2952,26 @@ function drawTuner(cents, hz, canvasId) {
   canvas.height = H;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, W, H);
-
-  // 背景
-  ctx.fillStyle = '#0d1117';
-  ctx.fillRect(0, 0, W, H);
+  // 背景は透明にしてカード面に馴染ませる(iOS風・両テーマ対応)
 
   // 目盛り
   const cx = W / 2;
   const range = 60; // ±60¢表示
+  // 水平トラック(iOSのセントバーの溝) — 静止時も「バー」として読める
+  const railY = Math.round(H / 2) + 0.5;
+  const railX0 = cx - (50 / range) * (W / 2 - 10);
+  const railX1 = cx + (50 / range) * (W / 2 - 10);
+  ctx.strokeStyle = C_BORDER; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(railX0, railY); ctx.lineTo(railX1, railY); ctx.stroke();
+  ctx.lineCap = 'butt';
   for (let c = -50; c <= 50; c += 10) {
     const x = cx + (c / range) * (W / 2 - 10);
-    ctx.strokeStyle = c === 0 ? ACCENT : '#30363d';
+    ctx.strokeStyle = c === 0 ? ACCENT : C_BORDER;
     ctx.lineWidth = c === 0 ? 2 : 1;
     ctx.beginPath(); ctx.moveTo(x, 4); ctx.lineTo(x, H - 4); ctx.stroke();
     if (c !== 0) {
-      ctx.fillStyle = '#8b949e';
-      ctx.font = '9px monospace';
+      ctx.fillStyle = C_TEXT2;
+      ctx.font = '9px -apple-system, system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText((c > 0 ? '+' : '') + c, x, H - 1);
     }
@@ -2966,7 +2982,7 @@ function drawTuner(cents, hz, canvasId) {
   // ニードル
   const clamp = Math.max(-range, Math.min(range, cents));
   const nx = cx + (clamp / range) * (W / 2 - 10);
-  const color = Math.abs(cents) < 10 ? '#3fb950' : Math.abs(cents) < 25 ? '#d29922' : '#f85149';
+  const color = Math.abs(cents) < 10 ? '#2fa84f' : Math.abs(cents) < 25 ? '#d99a3c' : '#d9544a';
 
   ctx.strokeStyle = color;
   ctx.lineWidth = 3;
