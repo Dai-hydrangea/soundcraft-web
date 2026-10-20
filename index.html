@@ -53,7 +53,9 @@
   --card-shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 22px rgba(0,0,0,.28);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+html { overflow-x: hidden; -webkit-text-size-adjust: 100%; }
 body {
+  overflow-x: hidden; max-width: 100%;
   background: var(--bg); color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, system-ui, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Segoe UI', Roboto, sans-serif; font-size: 14px; min-height: 100vh;
   /* iPhoneのノッチ・ホームバー対応 */
@@ -66,7 +68,7 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
 
 /* Header — sticky so Start/Stop is always accessible */
 #header { position: sticky; top: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-#header h1.wordmark { flex: 1; font-size: 17px; font-weight: 600; letter-spacing: .2px; color: var(--text); display: inline-flex; align-items: baseline; gap: 5px; }
+#header h1.wordmark { flex: 1 1 auto; min-width: 0; font-size: 17px; font-weight: 600; letter-spacing: .2px; color: var(--text); display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; overflow: hidden; }
 .logo-note { color: var(--accent); font-size: 19px; font-weight: 700; }
 #a4-ctrl { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
 .a4-label { font-weight: 600; letter-spacing: .3px; }
@@ -109,6 +111,19 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
 
 /* Cards */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; margin-bottom: 14px; box-shadow: var(--card-shadow); }
+/* チューナータブ内蔵メトロノーム */
+#metro-mini-card .metro-mini-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.metro-mini-dots { font-size: 15px; letter-spacing: 2px; color: var(--accent); font-family: ui-monospace, monospace; }
+.metro-mini-row { display: flex; align-items: center; gap: 18px; justify-content: center; }
+.metro-play-btn { width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer; flex: 0 0 auto; background: var(--danger); color: #fff; font-size: 21px; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 7px rgba(0,0,0,.2); transition: transform .1s; }
+.metro-play-btn:active { transform: scale(.92); }
+.metro-bpm-box { display: flex; align-items: center; gap: 14px; }
+.metro-step-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 20px; cursor: pointer; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
+.metro-step-btn:active { background: var(--surface2); }
+.metro-bpm-num { display: flex; flex-direction: column; align-items: center; line-height: 1; min-width: 66px; }
+.metro-bpm-num strong { font-size: 34px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.metro-bpm-num small { font-size: 11px; color: var(--text2); margin-top: 3px; letter-spacing: 1px; }
+.metro-mini-hint { text-align: center; font-size: 11px; color: var(--text2); margin-top: 12px; }
 
 /* ===== 計測タブ ===== */
 #now-display { text-align: center; }
@@ -177,7 +192,7 @@ tr:last-child td { border-bottom: none; }
 .text-sm { font-size: 12px; }
 
 /* ===== 課題タブ ===== */
-.chal-root-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 8px 0; }
+.chal-root-grid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 4px; margin: 8px 0; }
 .chal-btn { padding: 8px 2px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); color: var(--text); font-size: 13px; cursor: pointer; text-align: center; }
 .chal-btn.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
 .chal-type-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
@@ -237,7 +252,7 @@ tr:last-child td { border-bottom: none; }
 .card-reorder-btn:active { background:var(--accent); color: var(--on-accent); }
 
 /* ===== 合奏タブ ===== */
-.ens-root-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 8px 0; }
+.ens-root-grid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 4px; margin: 8px 0; }
 .ens-btn { padding: 8px 2px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); font-size: 13px; cursor: pointer; text-align: center; }
 .ens-btn.sel, .ens-type-btn.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
 .ens-type-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
@@ -334,7 +349,7 @@ tr:last-child td { border-bottom: none; }
     <!-- 基準音グリッド（常時表示） -->
     <div style="margin-top:12px; border-top:1px solid var(--border); padding-top:10px;">
       <div style="font-size:12px;color:var(--text2);margin-bottom:6px" data-i18n="select_note">音名を選択（タップで再生/停止）</div>
-      <div id="ref-tone-grid" style="display:grid; grid-template-columns:repeat(6,1fr); gap:4px; margin-bottom:8px;"></div>
+      <div id="ref-tone-grid" style="display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; margin-bottom:8px;"></div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:12px;color:var(--text2)" data-i18n="octave">オクターブ</span>
         <button class="btn" id="ref-oct-down" style="padding:4px 10px">−</button>
@@ -354,6 +369,23 @@ tr:last-child td { border-bottom: none; }
       </p>
     </div>
   </div>
+  <!-- メトロノーム (チューナータブ内蔵・エンジンはリズムタブと共有) -->
+  <div class="card" id="metro-mini-card">
+    <div class="metro-mini-top">
+      <h2 data-i18n="metro_title" style="margin:0">メトロノーム</h2>
+      <span id="metro-mini-dots" class="metro-mini-dots">○○○○</span>
+    </div>
+    <div class="metro-mini-row">
+      <button id="metro-mini-toggle" class="metro-play-btn" aria-label="Play/Stop">▶</button>
+      <div class="metro-bpm-box">
+        <button id="metro-mini-dec" class="metro-step-btn" aria-label="BPM down">−</button>
+        <div class="metro-bpm-num"><strong id="metro-mini-bpm">80</strong><small>BPM</small></div>
+        <button id="metro-mini-inc" class="metro-step-btn" aria-label="BPM up">+</button>
+      </div>
+    </div>
+    <div class="metro-mini-hint" data-i18n="metro_mini_hint">タップで開始／詳しい設定はリズムタブへ</div>
+  </div>
+
   <!-- デバッググラフ -->
   <div class="card" id="graph-wrap">
     <h2 data-i18n="debug_graph">デバッググラフ</h2>
@@ -1042,8 +1074,18 @@ const I18N = {
     "en": "Rhythm",
     "zh": "节奏"
   },
+  "metro_title": {
+    "ja": "メトロノーム",
+    "en": "Metronome",
+    "zh": "节拍器"
+  },
+  "metro_mini_hint": {
+    "ja": "タップで開始／詳しい設定はリズムタブへ",
+    "en": "Tap to start — more options in Rhythm tab",
+    "zh": "点击开始／详细设置在节奏标签页"
+  },
   "tab_settings": {
-    "ja": "Settings",
+    "ja": "設定",
     "en": "Settings",
     "zh": "Settings"
   },
@@ -4617,6 +4659,7 @@ function updateBpmUI(bpm) {
   document.querySelectorAll('.bpm-preset-btn').forEach(b => {
     b.classList.toggle('sel', +b.dataset.bpm === bpm);
   });
+  if (typeof syncMetroMini === 'function') syncMetroMini();
 }
 
 document.getElementById('rhythm-bpm-slider').addEventListener('input', function() {
@@ -4854,6 +4897,7 @@ function startRhythm() {
   document.getElementById('rhythm-latency-display').textContent = `遅延補正: 計測中… (最初の${RHYTHM_CALIB_N}音で自動計測)`;
   scheduleRhythm();
   // startPendulum(); // 振り子は廃止
+  if (typeof syncMetroMini === 'function') syncMetroMini();
 }
 
 function stopRhythm() {
@@ -4865,6 +4909,7 @@ function stopRhythm() {
   document.getElementById('rhythm-stop-btn').style.display = 'none';
   document.getElementById('rhythm-beat-dots').textContent = '○'.repeat(rhythmMeter);
   document.getElementById('rhythm-timing-display').textContent = '—';
+  if (typeof syncMetroMini === 'function') syncMetroMini();
 }
 
 function scheduleRhythm() {
@@ -4959,6 +5004,8 @@ function updateBeatDots(pos, active) {
     groupPos += rhythmGroups[gi];
   }
   dots.textContent = s;
+  const mini = document.getElementById('metro-mini-dots');
+  if (mini) mini.textContent = s;
 }
 
 // 振り子アニメーション（クリック音と完全同期、頂上=ビート）
@@ -7167,5 +7214,57 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
 </script>
 
 <!-- チュートリアルオーバーレイ（JSで動的に追加されるためここには不要） -->
+
+<script>
+// ===== チューナータブ内蔵メトロノーム (エンジンはリズムタブと共有) =====
+(function(){
+  var toggle = document.getElementById('metro-mini-toggle');
+  var dec    = document.getElementById('metro-mini-dec');
+  var inc    = document.getElementById('metro-mini-inc');
+  var bpmEl  = document.getElementById('metro-mini-bpm');
+  var dotsEl = document.getElementById('metro-mini-dots');
+  if (!toggle) return;
+
+  // 他スクリプトから呼べるようグローバルに公開(updateBpmUI/startRhythm/stopRhythmが呼ぶ)
+  window.syncMetroMini = function(){
+    var playing = (typeof rhythmActive !== 'undefined') && rhythmActive;
+    toggle.textContent = playing ? '■' : '▶';
+    toggle.classList.toggle('playing', playing);
+    if (bpmEl && typeof rhythmBpm !== 'undefined') bpmEl.textContent = rhythmBpm;
+    if (dotsEl && !playing && typeof rhythmMeter !== 'undefined') {
+      dotsEl.textContent = '○'.repeat(rhythmMeter);
+    }
+  };
+
+  async function ensureAudioForMetro(){
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      return true;
+    } catch(e){ return false; }
+  }
+
+  toggle.addEventListener('click', async function(){
+    if (typeof rhythmActive !== 'undefined' && rhythmActive) {
+      stopRhythm();
+    } else {
+      var ok = await ensureAudioForMetro();
+      if (!ok) return;
+      startRhythm();   // マイク不要でメトロノームは鳴る
+    }
+  });
+
+  function stepBpm(d){
+    var b = (typeof rhythmBpm !== 'undefined' ? rhythmBpm : 80) + d;
+    b = Math.min(200, Math.max(40, b));
+    updateBpmUI(b);   // slider/num/preset/ミニ表示を一括同期
+  }
+  if (dec) dec.addEventListener('click', function(){ stepBpm(-1); });
+  if (inc) inc.addEventListener('click', function(){ stepBpm(+1); });
+
+  // 初期表示
+  window.syncMetroMini();
+})();
+</script>
 </body>
 </html>
