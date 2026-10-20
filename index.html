@@ -213,6 +213,12 @@ tr:last-child td { border-bottom: none; }
 /* 設定内ボタン群 = iOS風ピル(選択=アクセント) */
 #panel-settings .card .btn { border-radius: 9px; padding: 7px 14px; font-size: 13px; }
 
+/* ===== ハーモニータブ: iOS風セグメントコントロール (平均律/純正律 等) ===== */
+#panel-ens .ens-mode-row { display: flex; gap: 0; background: var(--surface2); border-radius: 11px; padding: 3px; margin-bottom: 10px; }
+#panel-ens .ens-mode-row .btn { flex: 1; background: transparent; color: var(--text2); border-radius: 8px; box-shadow: none; font-size: 13px; }
+#panel-ens .ens-mode-row .btn.sel { background: var(--accent); color: var(--on-accent); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+#panel-ens #ens-chord-display { font-size: 15px; }
+
 /* Reset btn */
 #reset-data { margin-top: 16px; }
 
@@ -560,8 +566,8 @@ tr:last-child td { border-bottom: none; }
 
 <!-- ハーモニータブ -->
 <div class="panel" id="panel-ens">
-  <!-- ① ピッチ履歴 -->
-  <div class="card">
+  <!-- ① ピッチ履歴 (開発用・iOS非搭載につき非表示) -->
+  <div class="card" style="display:none">
     <h2 data-i18n="debug_graph">ピッチ履歴</h2>
     <canvas class="sub-graph-canvas" id="ens-graph-canvas"></canvas>
   </div>
