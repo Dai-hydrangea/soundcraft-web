@@ -132,6 +132,12 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
 .pend-pivot { position: absolute; left: 50%; bottom: 5px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: var(--text2); z-index: 2; }
 .pend-arm   { position: absolute; left: 50%; bottom: 9px; width: 3px; height: 82px; margin-left: -1.5px; transform-origin: 50% 100%; will-change: transform; background: var(--text2); border-radius: 2px; }
 .pend-bob   { position: absolute; top: -7px; left: 50%; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+/* リズムタブの大きな振り子 */
+#rhythm-pendulum { position: relative; width: 240px; height: 210px; margin: 6px auto 2px; }
+#rhythm-pendulum .pend-base  { bottom: 16px; width: 86px; height: 4px; margin-left: -43px; }
+#rhythm-pendulum .pend-pivot { bottom: 12px; width: 13px; height: 13px; margin-left: -6.5px; }
+#rhythm-pendulum .pend-arm   { bottom: 18px; width: 4px; height: 176px; margin-left: -2px; }
+#rhythm-pendulum .pend-bob   { top: -11px; width: 30px; height: 30px; margin-left: -15px; }
 
 /* ===== 計測タブ ===== */
 #now-display { text-align: center; }
@@ -693,7 +699,15 @@ tr:last-child td { border-bottom: none; }
 
 <!-- リズムタブ -->
 <div class="panel" id="panel-rhythm">
-  <div class="card">
+  <!-- 大きな振り子 (iOS v4.7 メトロノーム画面のメイン) -->
+  <div class="card" id="rhythm-pendulum-card">
+    <div id="rhythm-pendulum" aria-hidden="true">
+      <div class="pend-base"></div>
+      <div class="pend-arm"><span class="pend-bob"></span></div>
+      <div class="pend-pivot"></div>
+    </div>
+  </div>
+  <div class="card" style="display:none">
     <h2 data-i18n="debug_graph">デバッググラフ</h2>
     <canvas class="sub-graph-canvas" id="rhythm-graph-canvas"></canvas>
   </div>
@@ -7278,7 +7292,7 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
   // 滑らかさ: rAFで毎フレームJS更新するとメインスレッド負荷でカクつくため、
   //   Web Animations API でキーフレーム化 → **コンポジタスレッド駆動**(メイン詰まりと無関係)。
   var MAX_DEG = 28, EDGE_SHARP = 0.18, RING_LEAD = 0.03;
-  var pendAnim = null, pendResync = null;
+  var pendAnims = [], pendResync = null;  // 複数の .pend-arm (チューナー小+リズム大) を同時駆動
 
   function edgeCurveNorm(phase){
     var p = (phase - RING_LEAD) % 2; if (p < 0) p += 2;
@@ -7299,28 +7313,31 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
   }
   function beatSecNow(){ return 60 / (typeof rhythmBpm !== 'undefined' ? rhythmBpm : 80); }
   function syncPendTime(){
-    if (!pendAnim || typeof audioCtx === 'undefined' || !audioCtx) return;
+    if (!pendAnims.length || typeof audioCtx === 'undefined' || !audioCtx) return;
     var dur = 2 * beatSecNow() * 1000;
-    var phase = (audioCtx.currentTime / beatSecNow()) % 2;
-    try { pendAnim.currentTime = (phase / 2) * dur; } catch(e){}
+    var ct = ((audioCtx.currentTime / beatSecNow()) % 2 / 2) * dur;
+    pendAnims.forEach(function(a){ try { a.currentTime = ct; } catch(e){} });
   }
   function startPendAnim(){
-    if (!arm) return;
     stopPendAnim(true);
-    pendAnim = arm.animate(buildKeyframes(), { duration: 2 * beatSecNow() * 1000, iterations: Infinity, easing: 'linear' });
+    var arms = document.querySelectorAll('.pend-arm');  // 動的追加分も含め毎回取得
+    if (!arms.length) return;
+    var kf = buildKeyframes(), opt = { duration: 2 * beatSecNow() * 1000, iterations: Infinity, easing: 'linear' };
+    pendAnims = Array.prototype.map.call(arms, function(a){ return a.animate(kf, opt); });
     syncPendTime();
-    // クロック微ドリフト補正(2s毎・コンポジタ駆動は維持)
-    pendResync = setInterval(syncPendTime, 2000);
+    pendResync = setInterval(syncPendTime, 2000);  // クロック微ドリフト補正(2s毎)
   }
   function retimePendAnim(){ // BPM変更時: キーフレームは位相空間なので duration だけ更新
-    if (!pendAnim) return;
-    try { pendAnim.effect.updateTiming({ duration: 2 * beatSecNow() * 1000 }); } catch(e){}
+    if (!pendAnims.length) return;
+    var dur = 2 * beatSecNow() * 1000;
+    pendAnims.forEach(function(a){ try { a.effect.updateTiming({ duration: dur }); } catch(e){} });
     syncPendTime();
   }
   function stopPendAnim(keepArm){
     if (pendResync){ clearInterval(pendResync); pendResync = null; }
-    if (pendAnim){ try { pendAnim.cancel(); } catch(e){} pendAnim = null; }
-    if (!keepArm && arm) arm.style.transform = 'rotate(0deg)';
+    pendAnims.forEach(function(a){ try { a.cancel(); } catch(e){} });
+    pendAnims = [];
+    if (!keepArm) document.querySelectorAll('.pend-arm').forEach(function(a){ a.style.transform = 'rotate(0deg)'; });
   }
 
   // 他スクリプトから呼べるようグローバルに公開(updateBpmUI/startRhythm/stopRhythmが呼ぶ)
@@ -7332,7 +7349,7 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
     if (dotsEl && !playing && typeof rhythmMeter !== 'undefined') {
       dotsEl.textContent = '○'.repeat(rhythmMeter);
     }
-    if (playing) { if (!pendAnim) startPendAnim(); else retimePendAnim(); }
+    if (playing) { if (!pendAnims.length) startPendAnim(); else retimePendAnim(); }
     else stopPendAnim();
   };
 
