@@ -7020,6 +7020,28 @@ function resumeAudioCtx() {
   }
 }
 
+// iOS 強制解錠: 最初のユーザー操作で audioCtx を能動的に生成＋resume＋無音バッファ再生。
+// iOS Safari は mute スイッチで Web Audio を消す場合があるため playback セッションも再表明。
+let _audioUnlocked = false;
+function unlockAudio() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    // mute スイッチ無視 (iOS Safari 16.4+): 再生カテゴリを再表明。
+    // ただしマイク使用中(playAndRecord)は壊さないよう未使用時のみ。
+    try { if (typeof isStarted === 'undefined' || !isStarted) setAudioSessionType('playback'); } catch(e) {}
+    if (!_audioUnlocked) {
+      const b = audioCtx.createBuffer(1, 1, 22050);
+      const s = audioCtx.createBufferSource();
+      s.buffer = b; s.connect(audioCtx.destination); s.start(0);
+      _audioUnlocked = true;
+    }
+  } catch(e) {}
+}
+['touchend', 'pointerup', 'mousedown', 'click'].forEach(function(ev){
+  document.addEventListener(ev, unlockAudio, { passive: true });
+});
+
 // バックグラウンド復帰時 → マイクOFF（クリーンな状態に戻す）
 function resetAudioOnResume() {
   if (isStarted) stopAudio();
