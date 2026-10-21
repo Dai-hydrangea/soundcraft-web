@@ -460,31 +460,39 @@ tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
+<style>
+#now-display .tuner-row { display:flex; gap:10px; align-items:stretch; }
+#now-display .tuner-main { flex:1 1 auto; min-width:0; }
+#ref-rotary { flex:0 0 78px; height:240px; display:flex; flex-direction:column; gap:3px;
+  overflow-y:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:y proximity;
+  border-left:1px solid var(--border); padding-left:8px; }
+#ref-rotary::-webkit-scrollbar { width:0; height:0; }
+#ref-rotary .ref-note { flex:0 0 auto; scroll-snap-align:center; border:1px solid var(--border);
+  background:var(--surface2); color:var(--text); border-radius:8px; padding:7px 0; font-size:13px;
+  font-weight:600; cursor:pointer; text-align:center; -webkit-tap-highlight-color:transparent; }
+#ref-rotary .ref-note.sel { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+#now-display .ref-hint { font-size:11px; color:var(--text2); text-align:center; margin-top:8px; }
+</style>
 <!-- 計測タブ -->
 <div class="panel active" id="panel-measure">
   <!-- 現在の音 -->
   <div class="card" id="now-display">
+    <div class="tuner-row">
+    <div class="tuner-main">
     <h2 data-i18n="current_note">現在の音</h2>
     <div id="now-note">—</div>
     <div id="now-cents">— ¢</div>
     <canvas id="tuner-canvas"></canvas>
     <div id="state-badge" class="silent">SILENT</div>
     <div id="rms-display" style="font-size:13px;color:var(--accent);margin-top:6px;font-family:monospace;">—</div>
+    </div><!-- /tuner-main -->
+    <div id="ref-rotary" aria-label="基準音"></div>
+    </div><!-- /tuner-row -->
+    <div class="ref-hint" data-i18n="select_note">右のバーをタップで基準音を再生/停止（下＝低音）</div>
     <!-- 音程フィードバック (iOS非搭載につき削除) -->
     <div style="margin-top:14px; display:none; gap:10px; justify-content:center;">
       <button class="btn btn-success" id="prac-start-btn" style="flex:1;max-width:280px;padding:12px;font-size:15px;" data-i18n="pitch_feedback">▶ 音程フィードバック</button>
       <button class="btn btn-outline" id="prac-stop-btn" style="flex:1;max-width:280px;padding:12px;font-size:15px;display:none" data-i18n="stop">■ 停止</button>
-    </div>
-    <!-- 基準音グリッド（常時表示） -->
-    <div style="margin-top:12px; border-top:1px solid var(--border); padding-top:10px;">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:6px" data-i18n="select_note">音名を選択（タップで再生/停止）</div>
-      <div id="ref-tone-grid" style="display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:4px; margin-bottom:8px;"></div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:12px;color:var(--text2)" data-i18n="octave">オクターブ</span>
-        <button class="btn" id="ref-oct-down" style="padding:4px 10px">−</button>
-        <span id="ref-oct-val" style="font-size:14px;font-weight:600;min-width:20px;text-align:center">4</span>
-        <button class="btn" id="ref-oct-up" style="padding:4px 10px">+</button>
-      </div>
     </div>
     <!-- フィードバック詳細（フィードバック中のみ表示） -->
     <div id="feedback-detail" style="display:none; margin-top:16px; text-align:center; border-top:1px solid var(--border); padding-top:14px;">
@@ -1313,9 +1321,9 @@ const I18N = {
     "zh": "🎵 基准音"
   },
   "select_note": {
-    "ja": "音名を選択（タップで再生/停止）",
-    "en": "Select a note (tap to play/stop)",
-    "zh": "选择音名（点击播放/停止）"
+    "ja": "右のバーをタップで基準音を再生/停止（下＝低音）",
+    "en": "Tap the bar to play/stop a reference tone (low = bottom)",
+    "zh": "点击右侧音条播放/停止基准音（下＝低音）"
   },
   "octave": {
     "ja": "オクターブ",
@@ -2458,9 +2466,9 @@ function applyNotation() {
   document.getElementById('notation-german').classList.toggle('sel', useGerman);
   document.getElementById('notation-english').classList.toggle('sel', !useGerman);
   const names = useGerman ? GERMAN : ENGLISH;
-  // 基準音グリッドのラベル更新
-  document.querySelectorAll('#ref-tone-grid button').forEach(btn => {
-    btn.textContent = names[+btn.dataset.note];
+  // 基準音ロータリーのラベル更新
+  document.querySelectorAll('#ref-rotary .ref-note').forEach(btn => {
+    btn.textContent = noteLabel(+btn.dataset.midi);
   });
   // 課題の根音グリッド再構築
   document.querySelectorAll('#chal-root-grid .chal-btn').forEach(btn => {
@@ -2541,42 +2549,37 @@ function makeLimiter(){
 
 let refToneOsc = null, refToneGain = null, refToneMidi = null, refToneOct = 4;
 
-(function buildRefToneGrid() {
-  const grid = document.getElementById('ref-tone-grid');
-  for (let i = 0; i < 12; i++) {
-    const btn = document.createElement('button');
-    btn.className = 'btn';
-    btn.dataset.note = i;
-    btn.textContent = noteLabel(60 + i).replace(/\d+$/, '');
-    btn.style.fontSize = '13px';
-    btn.style.padding = '8px 2px';
-    btn.addEventListener('click', () => {
-      const midi = (refToneOct + 1) * 12 + i;
+// 基準音ロータリー: 縦に音名を積む (上=高音 / 下=低音)。タップで再生/停止。
+(function buildRefRotary() {
+  const col = document.getElementById('ref-rotary');
+  if (!col) return;
+  const LOW = 48, HIGH = 84; // C3〜C6
+  for (let midi = HIGH; midi >= LOW; midi--) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ref-note';
+    b.dataset.midi = midi;
+    b.textContent = noteLabel(midi);
+    b.addEventListener('click', () => {
       if (refToneMidi === midi) {
-        // 同じ音をタップ → 停止
         stopRefToneManual();
-        // 音程FBボタンを緑に戻す
         document.getElementById('prac-start-btn').className = 'btn btn-success';
         return;
       }
-      // 音程FBが動作中なら停止
       if (pracActive) stopPractice();
       playRefToneManual(midi);
-      // 音程FBボタンをグレーに
-      document.getElementById('prac-start-btn').className = 'btn';
-      document.getElementById('prac-start-btn').style.display = '';
+      const pb = document.getElementById('prac-start-btn');
+      pb.className = 'btn'; pb.style.display = '';
       document.getElementById('prac-stop-btn').style.display = 'none';
     });
-    grid.appendChild(btn);
+    col.appendChild(b);
   }
+  // 既定 B♭4 (midi 70) を中央に表示 (未再生・ハイライトなし)
+  const def = col.querySelector('.ref-note[data-midi="70"]');
+  if (def) requestAnimationFrame(() => {
+    col.scrollTop = Math.max(0, def.offsetTop - col.clientHeight / 2 + def.offsetHeight / 2);
+  });
 })();
-
-document.getElementById('ref-oct-down').addEventListener('click', () => {
-  if (refToneOct > 2) { refToneOct--; document.getElementById('ref-oct-val').textContent = refToneOct; }
-});
-document.getElementById('ref-oct-up').addEventListener('click', () => {
-  if (refToneOct < 6) { refToneOct++; document.getElementById('ref-oct-val').textContent = refToneOct; }
-});
 
 function playRefToneManual(midi) {
   if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -2603,14 +2606,10 @@ function playRefToneManual(midi) {
     refToneGain.gain.setTargetAtTime(0.8 * masterVolume, audioCtx.currentTime, 0.05);
   }
   refToneMidi = midi;
-  // ボタンハイライト（緑色）
-  document.querySelectorAll('#ref-tone-grid button').forEach(b => {
-    b.classList.remove('active-green');
-    b.style.background = '';
-    b.style.color = '';
-  });
-  const selBtn = document.querySelector(`#ref-tone-grid button[data-note="${midi % 12}"]`);
-  if (selBtn) selBtn.classList.add('active-green');
+  // ロータリーの選択ハイライト
+  document.querySelectorAll('#ref-rotary .ref-note').forEach(b => b.classList.remove('sel'));
+  const selBtn = document.querySelector(`#ref-rotary .ref-note[data-midi="${midi}"]`);
+  if (selBtn) { selBtn.classList.add('sel'); selBtn.scrollIntoView({ block:'nearest' }); }
 }
 
 function stopRefToneManual() {
@@ -2623,7 +2622,7 @@ function stopRefToneManual() {
   setTimeout(() => {
     if (osc) { try { osc.stop(); } catch(e){} }
   }, 500);
-  document.querySelectorAll('#ref-tone-grid button').forEach(b => b.classList.remove('active-green'));
+  document.querySelectorAll('#ref-rotary .ref-note').forEach(b => b.classList.remove('sel'));
 }
 
 // ============================================================
