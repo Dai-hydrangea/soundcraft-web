@@ -461,14 +461,14 @@ tr:last-child td { border-bottom: none; }
 </div>
 
 <style>
-#now-display .tuner-row { display:flex; gap:10px; align-items:stretch; }
-#now-display .tuner-main { flex:1 1 auto; min-width:0; }
-#ref-rotary { flex:0 0 78px; height:240px; display:flex; flex-direction:column; gap:3px;
+#now-display .tuner-row { display:flex; gap:10px; align-items:stretch; height:320px; }
+#now-display .tuner-main { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; justify-content:center; }
+#ref-rotary { flex:0 0 74px; min-height:0; align-self:stretch; display:flex; flex-direction:column; gap:4px;
   overflow-y:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:y proximity;
   border-left:1px solid var(--border); padding-left:8px; }
 #ref-rotary::-webkit-scrollbar { width:0; height:0; }
 #ref-rotary .ref-note { flex:0 0 auto; scroll-snap-align:center; border:1px solid var(--border);
-  background:var(--surface2); color:var(--text); border-radius:8px; padding:7px 0; font-size:13px;
+  background:var(--surface2); color:var(--text); border-radius:7px; padding:5px 0; font-size:12.5px;
   font-weight:600; cursor:pointer; text-align:center; -webkit-tap-highlight-color:transparent; }
 #ref-rotary .ref-note.sel { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
 #now-display .ref-hint { font-size:11px; color:var(--text2); text-align:center; margin-top:8px; }
@@ -476,7 +476,7 @@ tr:last-child td { border-bottom: none; }
 <!-- 計測タブ -->
 <div class="panel active" id="panel-measure">
   <!-- 現在の音 -->
-  <div class="card" id="now-display">
+  <div class="card no-collapse" id="now-display">
     <div class="tuner-row">
     <div class="tuner-main">
     <h2 data-i18n="current_note">現在の音</h2>
