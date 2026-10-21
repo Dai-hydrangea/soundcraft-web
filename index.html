@@ -376,12 +376,75 @@ tr:last-child td { border-bottom: none; }
   <button class="tab" data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg><span data-i18n="tab_settings">設定</span></button>
 </nav>
 
-<!-- 基礎練タブ (流れる楽譜: 準備中プレースホルダ) -->
+<!-- 基礎練タブ (流れる楽譜) -->
+<style>
+#panel-scale .sc-controls { display:flex; flex-direction:column; gap:13px; }
+#panel-scale .sc-row { display:flex; align-items:center; gap:10px; }
+#panel-scale .sc-lbl { font-size:13px; color:var(--text2); min-width:58px; }
+#panel-scale #sc-type, #panel-scale #sc-key { flex:1; padding:9px 10px; border-radius:9px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:14px; }
+#panel-scale .sc-dir { display:flex; gap:0; flex:1; background:var(--surface2); border-radius:10px; padding:3px; }
+#panel-scale .sc-dir-btn { flex:1; background:transparent; border:none; color:var(--text2); font-size:16px; padding:7px 0; border-radius:8px; cursor:pointer; }
+#panel-scale .sc-dir-btn.sel { background:var(--accent); color:var(--on-accent); font-weight:700; }
+#panel-scale .sc-slur { stroke:var(--text2); }
+#panel-scale .sc-keylabel { fill:var(--accent2); }
+#panel-scale #sc-tempo { flex:1; -webkit-appearance:none; appearance:none; height:4px; border-radius:2px; background:var(--surface2); outline:none; cursor:pointer; }
+#panel-scale #sc-tempo::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.3); cursor:pointer; }
+#panel-scale #sc-tempo::-moz-range-thumb { width:22px; height:22px; border:none; border-radius:50%; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.3); cursor:pointer; }
+#panel-scale #sc-tempo-val { min-width:34px; text-align:right; color:var(--accent); font-weight:700; font-size:14px; }
+#panel-scale .sc-play { width:100%; padding:12px; font-size:15px; font-weight:600; background:var(--accent); color:var(--on-accent); border-radius:11px; }
+#panel-scale .sc-stage-card { padding:12px 0 8px; overflow:hidden; }
+#panel-scale #sc-stage { position:relative; width:100%; overflow:hidden; }
+#panel-scale #sc-svg { display:block; width:100%; }
+#panel-scale #sc-info { text-align:center; margin-top:8px; min-height:38px; }
+#panel-scale #sc-sol { font-size:30px; font-weight:700; color:var(--accent); vertical-align:middle; }
+#panel-scale #sc-fing { font-size:15px; color:var(--text2); margin-left:12px; vertical-align:middle; }
+#panel-scale .sc-hint { text-align:center; color:var(--text2); font-size:12px; margin-top:6px; }
+/* SVG テーマ連動 (presentation attr は var() 不可なので class+CSS で解決) */
+#panel-scale .sc-staff { stroke:var(--border); stroke-width:1; }
+#panel-scale .sc-ledger { stroke:var(--border); stroke-width:1.3; }
+#panel-scale .sc-judge { stroke:var(--accent); stroke-width:2; opacity:.5; }
+#panel-scale .sc-clef { fill:var(--text2); }
+#panel-scale .sc-ks { fill:var(--text2); }
+#panel-scale .sc-acc { fill:var(--text); }
+#panel-scale .sc-note { fill:var(--text); }
+#panel-scale .sc-stem { stroke:var(--text); stroke-width:1.4; }
+#panel-scale .sc-fingtxt { fill:var(--accent2); font-weight:700; }
+#panel-scale .sc-soltxt { fill:var(--text2); }
+#panel-scale .sc-notegrp.playing .sc-note { fill:var(--accent); }
+#panel-scale .sc-notegrp.playing .sc-stem { stroke:var(--accent); }
+#panel-scale .sc-notegrp.playing .sc-acc { fill:var(--accent); }
+</style>
 <div class="panel" id="panel-scale">
   <div class="panel-title" data-i18n="tab_scale">基礎練</div>
-  <div class="card" style="text-align:center; padding:44px 18px;">
-    <div style="font-size:42px; margin-bottom:12px; opacity:.45;">🎼</div>
-    <p style="color:var(--text2); font-size:14px; line-height:1.6;" data-i18n="scale_coming_soon">基礎練（流れる楽譜）は準備中です。</p>
+  <div class="card sc-controls">
+    <div class="sc-row">
+      <label class="sc-lbl" data-i18n="scale_type">種類</label>
+      <select id="sc-type"></select>
+    </div>
+    <div class="sc-row" id="sc-key-row">
+      <label class="sc-lbl" data-i18n="scale_key">調</label>
+      <select id="sc-key"></select>
+    </div>
+    <div class="sc-row">
+      <label class="sc-lbl" data-i18n="scale_dir">方向</label>
+      <div class="sc-dir">
+        <button type="button" class="sc-dir-btn sel" data-dir="up">↑</button>
+        <button type="button" class="sc-dir-btn" data-dir="down">↓</button>
+        <button type="button" class="sc-dir-btn" data-dir="updown">↑↓</button>
+      </div>
+    </div>
+    <div class="sc-row">
+      <label class="sc-lbl" data-i18n="scale_tempo">テンポ</label>
+      <input type="range" id="sc-tempo" min="40" max="160" step="2" value="80">
+      <span id="sc-tempo-val">80</span>
+    </div>
+    <button class="btn sc-play" id="sc-play-btn" data-i18n="scale_start">スタート</button>
+    <button class="btn sc-play" id="sc-stop-btn" data-i18n="scale_stop" style="display:none;">ストップ</button>
+  </div>
+  <div class="card sc-stage-card">
+    <div id="sc-stage"><svg id="sc-svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div id="sc-info"><span id="sc-sol">—</span><span id="sc-fing"></span></div>
+    <div class="sc-hint" data-i18n="scale_hint">音符が判定ラインを通る瞬間に鳴ります</div>
   </div>
 </div>
 
@@ -1165,6 +1228,46 @@ const I18N = {
     "ja": "基礎練",
     "en": "Scales",
     "zh": "基础练习"
+  },
+  "scale_pick": {
+    "ja": "スケール",
+    "en": "Scale",
+    "zh": "音阶"
+  },
+  "scale_type": {
+    "ja": "種類",
+    "en": "Type",
+    "zh": "类型"
+  },
+  "scale_key": {
+    "ja": "調",
+    "en": "Key",
+    "zh": "调"
+  },
+  "scale_dir": {
+    "ja": "方向",
+    "en": "Direction",
+    "zh": "方向"
+  },
+  "scale_tempo": {
+    "ja": "テンポ",
+    "en": "Tempo",
+    "zh": "速度"
+  },
+  "scale_start": {
+    "ja": "スタート",
+    "en": "Start",
+    "zh": "开始"
+  },
+  "scale_stop": {
+    "ja": "ストップ",
+    "en": "Stop",
+    "zh": "停止"
+  },
+  "scale_hint": {
+    "ja": "音符が判定ラインを通る瞬間に鳴ります",
+    "en": "Each note sounds as it crosses the line",
+    "zh": "音符经过判定线时发声"
   },
   "tab_other": {
     "ja": "その他",
@@ -2145,6 +2248,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (chalActive) stopChallenge();
     if (rhythmActive) stopRhythm();
     stopHarmonyViz();
+    if (typeof stopScale === 'function') stopScale();
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
@@ -2170,6 +2274,8 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (tab.dataset.tab === 'attack') startAttackViz();
     else stopAttackViz();
     if (tab.dataset.tab === 'report') renderReport();
+    // 基礎練タブ: 流れる楽譜を描画
+    if (tab.dataset.tab === 'scale' && typeof initScaleTab === 'function') requestAnimationFrame(initScaleTab);
     // その他タブ: サブ(アタック/録音)を表示
     if (tab.dataset.tab === 'other') showOtherSub(window._otherSub || 'attack');
   });
@@ -2500,7 +2606,22 @@ function stopRefToneManual() {
 //      楽器音（トランペット等）がノイズとして除去され RMS≈0 になる。
 // Mac/他: 同設定だと動作しない場合があるため iOS のみ適用し、
 //          失敗時は { audio:true } にフォールバックする。
+// 常にマイクON 用: 設定の永続化 + AudioContext 自動復帰ガード
+function micAutoEnabled(){ try { return localStorage.getItem('sc-mic-auto') === '1'; } catch(e){ return false; } }
+function setMicAuto(v){ try { localStorage.setItem('sc-mic-auto', v ? '1' : '0'); } catch(e){} }
+function guardAudioCtx(){
+  if (audioCtx && !audioCtx._guarded) {
+    audioCtx._guarded = true;
+    audioCtx.addEventListener('statechange', function(){
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(function(){});
+    });
+  }
+}
+
 async function startMic() {
+  if (isStarted || window._micStarting) return;
+  window._micStarting = true;
+  try {
   // マイク入力のためセッションを切替（音量やや下がるがマイク必須）
   setAudioSessionType('playAndRecord');
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -2534,14 +2655,17 @@ async function startMic() {
   sourceNode = audioCtx.createMediaStreamSource(stream);
   sourceNode.connect(analyser);
   isStarted = true;
+  setMicAuto(true);
+  guardAudioCtx();
   document.getElementById('start-btn').textContent = t('mic_stop');
   document.getElementById('start-btn').className = 'btn btn-danger';
   timerId = setInterval(detectLoop, DETECT_INTERVAL);
   startTunerRAF();
+  } finally { window._micStarting = false; }
 }
 
 document.getElementById('start-btn').addEventListener('click', async () => {
-  if (isStarted) { stopAudio(); return; }
+  if (isStarted) { setMicAuto(false); stopAudio(); return; }
   try {
     await startMic();
   } catch(e) {
@@ -7042,10 +7166,14 @@ function unlockAudio() {
   document.addEventListener(ev, unlockAudio, { passive: true });
 });
 
-// バックグラウンド復帰時 → マイクOFF（クリーンな状態に戻す）
+// 復帰時: マイクは切らない(デスクトップで focus のたびに切れる不具合を根絶)。
+// AudioContext を復帰させ、常時ON設定でマイクが落ちていたら黙って復帰する。
 function resetAudioOnResume() {
-  if (isStarted) stopAudio();
   resumeAudioCtx();
+  guardAudioCtx();
+  if (micAutoEnabled() && !isStarted && !document.hidden) {
+    startMic().catch(function(){});
+  }
 }
 
 document.addEventListener('visibilitychange', () => {
@@ -7054,6 +7182,32 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('resume', resetAudioOnResume);
 window.addEventListener('focus', resetAudioOnResume);
 document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
+
+// ============================================================
+// 常にマイクON: 一度許可したら以降は自動開始・自動復帰
+// ============================================================
+(function autoMicOnLoad(){
+  function tryStart(){ if (micAutoEnabled() && !isStarted) startMic().catch(function(){}); }
+  function check(){
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'microphone' }).then(function(st){
+        if (st.state === 'granted') {
+          // 既に許可済みなら「常時ON」を既定にする(未設定時のみ)
+          if (localStorage.getItem('sc-mic-auto') === null) setMicAuto(true);
+          tryStart();
+        }
+        // 許可状態が変わったら追従(別タブで許可など)
+        st.onchange = function(){ if (st.state === 'granted') tryStart(); };
+      }).catch(function(){ tryStart(); });
+    } else { tryStart(); }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check);
+  else check();
+  // getUserMedia にユーザー操作が要るブラウザ向け: 最初の操作でも一度だけ試す
+  var tried = false;
+  function once(){ if (tried) return; tried = true; if (micAutoEnabled() && !isStarted) startMic().catch(function(){}); }
+  ['pointerup','click','touchend'].forEach(function(ev){ document.addEventListener(ev, once, { passive: true }); });
+})();
 
 // ============================================================
 // インタラクティブチュートリアル
@@ -7466,6 +7620,347 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
 
   // 初期表示
   window.syncMetroMini();
+})();
+</script>
+
+<!-- ============================================================
+     基礎練タブ: 流れる楽譜 (MVP)
+     土台 = scale_score_viewer.html の描画 + 既存 audioCtx / midiToHz
+     ============================================================ -->
+<script>
+(function(){
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  // ---- レイアウト定数 (viewer から) ----
+  var LS = 14, NRX = 8, NRY = 5, TOP = 72, H = 214;
+  var CLEF_W = 44, KS_W = 12, NS = 64;   // NS = 音符間隔(=1拍の横幅)
+  var JUDGE_X = 86;                      // 判定ライン画面X
+  var LEAD = 0.18;                       // 発音/描画の先読み(秒)
+  var TAIL_BEATS = 2;                    // 最後の音が通過後も少し流す
+
+  var SHARP_POS = [0.0,1.5,-0.5,1.0,2.5,0.5,2.0];
+  var FLAT_POS  = [2.0,0.5,2.5,1.0,3.0,1.5,3.5];
+
+  // ---- ピッチ辞書 (viewer の P: sp/fsp/運指f/ソルフェージュs) ----
+  var P = {
+    fs3:{sp:7.0,fsp:6.5,c:1,f:'1-2-3',s:'ソ♭'}, g3:{sp:6.5,fsp:null,c:0,f:'1-3',s:'ソ'},
+    gs3:{sp:6.5,fsp:6.0,c:1,f:'2-3',s:'ラ♭'}, a3:{sp:6.0,fsp:null,c:0,f:'1-2',s:'ラ'},
+    as3:{sp:6.0,fsp:5.5,c:1,f:'1',s:'シ♭'}, b3:{sp:5.5,fsp:null,c:0,f:'2',s:'シ'},
+    c4:{sp:5.0,fsp:null,c:0,f:'0',s:'ド'}, cs4:{sp:5.0,fsp:4.5,c:1,f:'1-2-3',s:'レ♭'},
+    d4:{sp:4.5,fsp:null,c:0,f:'1-3',s:'レ'}, ds4:{sp:4.5,fsp:4.0,c:1,f:'2-3',s:'ミ♭'},
+    e4:{sp:4.0,fsp:null,c:0,f:'1-2',s:'ミ'}, f4:{sp:3.5,fsp:null,c:0,f:'1',s:'ファ'},
+    fs4:{sp:3.5,fsp:3.0,c:1,f:'2',s:'ソ♭'}, g4:{sp:3.0,fsp:null,c:0,f:'0',s:'ソ'},
+    gs4:{sp:3.0,fsp:2.5,c:1,f:'2-3',s:'ラ♭'}, a4:{sp:2.5,fsp:null,c:0,f:'1-2',s:'ラ'},
+    as4:{sp:2.5,fsp:2.0,c:1,f:'1',s:'シ♭'}, b4:{sp:2.0,fsp:null,c:0,f:'2',s:'シ'},
+    c5:{sp:1.5,fsp:null,c:0,f:'0',s:'ド'}, cs5:{sp:1.5,fsp:1.0,c:1,f:'1-2',s:'レ♭'},
+    d5:{sp:1.0,fsp:null,c:0,f:'1',s:'レ'}, ds5:{sp:1.0,fsp:0.5,c:1,f:'2',s:'ミ♭'},
+    e5:{sp:0.5,fsp:null,c:0,f:'0',s:'ミ'}, f5:{sp:0.0,fsp:null,c:0,f:'1',s:'ファ'},
+    fs5:{sp:0.0,fsp:-0.5,c:1,f:'2',s:'ソ♭'}, g5:{sp:-0.5,fsp:null,c:0,f:'0',s:'ソ'},
+    gs5:{sp:-0.5,fsp:-1.0,c:1,f:'2-3',s:'ラ♭'}, a5:{sp:-1.0,fsp:null,c:0,f:'1-2',s:'ラ'},
+    as5:{sp:-1.0,fsp:-1.5,c:1,f:'1',s:'シ♭'}, b5:{sp:-1.5,fsp:null,c:0,f:'2',s:'シ'},
+    c6:{sp:-2.0,fsp:null,c:0,f:'0',s:'ド'}, cs6:{sp:-2.0,fsp:-2.5,c:1,f:'1-2',s:'レ♭'}
+  };
+
+  // ---- 12調 (記譜音ルート) + 調号 + スケール公式 ----
+  var PC_SHARP = ['c','cs','d','ds','e','f','fs','g','gs','a','as','b'];
+  function midiToPKey(m){ return PC_SHARP[((m%12)+12)%12] + (Math.floor(m/12)-1); }
+  // 各調のルート(記譜音)。B♭/Bは下オクターブに置き、上昇が音域(P辞書 fs3〜cs6)内に収まるよう調整。
+  var KEYS12 = [
+    {pc:0, root:60, name:'C'},  {pc:1, root:61, name:'D♭'}, {pc:2, root:62, name:'D'},
+    {pc:3, root:63, name:'E♭'}, {pc:4, root:64, name:'E'},  {pc:5, root:65, name:'F'},
+    {pc:6, root:66, name:'F♯'}, {pc:7, root:67, name:'G'},  {pc:8, root:68, name:'A♭'},
+    {pc:9, root:69, name:'A'},  {pc:10,root:58, name:'B♭'}, {pc:11,root:59, name:'B'}
+  ];
+  // 調号 [本数, isSharp] : pitch class → key signature
+  var MAJOR_KS = {0:[0,true],1:[5,false],2:[2,true],3:[3,false],4:[4,true],5:[1,false],6:[6,true],7:[1,true],8:[4,false],9:[3,true],10:[2,false],11:[5,true]};
+  var MINOR_KS = {0:[3,false],1:[4,true],2:[1,false],3:[6,false],4:[1,true],5:[4,false],6:[3,true],7:[2,false],8:[5,true],9:[0,true],10:[5,false],11:[2,true]};
+  var MAJOR_STEPS = [0,2,4,5,7,9,11,12];
+  var MINOR_STEPS = [0,2,3,5,7,8,10,12]; // 自然短音階
+  // リップスラー (viewer の LIP_ASC / LIP_DESC・同一運指で倍音移動)
+  var LIP_DESC = [['as4','f4'],['a4','e4'],['gs4','ds4'],['g4','c4'],['fs4','b3'],['f4','as3'],['e4','a3'],['ds4','gs3']];
+  var LIP_ASC  = [['b3','fs4'],['c4','g4'],['ds4','gs4'],['e4','a4'],['f4','as4'],['g4','c5']];
+
+  var curDir = 'up';
+
+  // 種類一覧 (select 用)
+  var TYPES = [
+    {id:'major',      kind:'scale', type:'major', name:{ja:'メジャー', en:'Major', zh:'大调'}},
+    {id:'minor',      kind:'scale', type:'minor', name:{ja:'マイナー', en:'Minor', zh:'小调'}},
+    {id:'major_cont', kind:'cont',  type:'major', name:{ja:'メジャー（全調連続）', en:'Major — all keys', zh:'大调（全调连续）'}},
+    {id:'minor_cont', kind:'cont',  type:'minor', name:{ja:'マイナー（全調連続）', en:'Minor — all keys', zh:'小调（全调连续）'}},
+    {id:'lipslur',    kind:'lipslur',            name:{ja:'リップスラー', en:'Lip Slurs', zh:'唇滑音'}}
+  ];
+
+  // 1調ぶんの音符メタを返す (調号方式・臨時記号なし)
+  function scaleNotes(keyObj, type, dir){
+    var steps = (type==='minor') ? MINOR_STEPS : MAJOR_STEPS;
+    var ks = (type==='minor' ? MINOR_KS : MAJOR_KS)[keyObj.pc]; // [count,isSharp]
+    var up = steps.map(function(s){ return keyObj.root+s; });
+    var midis = (dir==='down') ? up.slice().reverse()
+             : (dir==='updown') ? up.concat(up.slice(0,-1).reverse())
+             : up;
+    return midis.map(function(m){
+      var p = P[midiToPKey(m)];
+      var sp = (p && p.c && !ks[1] && p.fsp!=null) ? p.fsp : (p ? p.sp : 3);
+      return { sp:sp, acc:null, sol:(p?p.s:''), fing:(p?p.f:''),
+               freq:(typeof midiToHz==='function'?midiToHz(m):440*Math.pow(2,(m-69)/12)) };
+    });
+  }
+  // リップスラー: ペア配列 → 音符メタ(♭表記)
+  function lipPairs(dir){
+    return (dir==='down') ? LIP_DESC : (dir==='updown') ? LIP_ASC.concat(LIP_DESC) : LIP_ASC;
+  }
+  function lipNote(k){
+    var p = P[k];
+    var sp = (p && p.c && p.fsp!=null) ? p.fsp : (p ? p.sp : 3);
+    return { sp:sp, acc:(p&&p.c)?'♭':null, sol:(p?p.s:''), fing:(p?p.f:''), freq:freqOf(k) };
+  }
+
+  // ---- ユーティリティ ----
+  function lang(){ return (typeof currentLang !== 'undefined') ? currentLang : 'ja'; }
+  function sy(sp){ return TOP + sp*LS; }
+  function el(tag, attrs, text){
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, String(attrs[k]));
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function keyToMidi(k){
+    var m = /^([a-g])(s?)(\d+)$/.exec(k); if(!m) return 69;
+    var base = {c:0,d:2,e:4,f:5,g:7,a:9,b:11}[m[1]];
+    return 12*(parseInt(m[3],10)+1) + base + (m[2]?1:0);
+  }
+  function freqOf(k){
+    var midi = keyToMidi(k);
+    return (typeof midiToHz === 'function') ? midiToHz(midi) : 440*Math.pow(2,(midi-69)/12);
+  }
+
+  // ---- 描画: 固定レイヤ(五線+判定線) / 移動レイヤ(音符) ----
+  function drawLedger(move, x, sp){
+    var lo = Math.floor(sp), hi = Math.ceil(sp), p;
+    if (sp >= 5) for (p=5;p<=lo;p++) move.appendChild(el('line',{x1:x-14,y1:sy(p),x2:x+14,y2:sy(p),'class':'sc-ledger'}));
+    if (sp <= -1) for (p=-1;p>=hi;p--) move.appendChild(el('line',{x1:x-14,y1:sy(p),x2:x+14,y2:sy(p),'class':'sc-ledger'}));
+  }
+  function drawNoteGroup(move, x, sp, accSym, sol, fing){
+    var g = el('g', {'class':'sc-notegrp'});
+    drawLedger(g, x, sp);
+    if (accSym) g.appendChild(el('text',{x:x-NRX-1,y:sy(sp)+4.5,'text-anchor':'end','font-size':12,'font-weight':'bold','class':'sc-acc'}, accSym));
+    g.appendChild(el('ellipse',{cx:x,cy:sy(sp),rx:NRX,ry:NRY,'class':'sc-note'}));
+    var stemLen = LS*3.2;
+    if (sp >= 2) g.appendChild(el('line',{x1:x+NRX,y1:sy(sp)-NRY+1,x2:x+NRX,y2:sy(sp)-NRY+1-stemLen,'class':'sc-stem'}));
+    else         g.appendChild(el('line',{x1:x-NRX,y1:sy(sp)+NRY-1,x2:x-NRX,y2:sy(sp)+NRY-1+stemLen,'class':'sc-stem'}));
+    var fy = Math.max(sy(sp)+NRY+16, sy(4)+NRY+16);
+    g.appendChild(el('text',{x:x,y:fy,'text-anchor':'middle','font-size':12,'class':'sc-fingtxt'}, fing));
+    g.appendChild(el('text',{x:x,y:fy+14,'text-anchor':'middle','font-size':10,'class':'sc-soltxt'}, sol));
+    move.appendChild(g);
+    return g;
+  }
+
+  var svg, fixedG, moveG, anim=null, timers=[], active=false, scaleGain=null, rendered=null;
+
+  function drawKeySig(parent, x0, count, isSharp){
+    var pos = isSharp ? SHARP_POS : FLAT_POS, sym = isSharp ? '♯' : '♭';
+    for (var i=0;i<count;i++) parent.appendChild(el('text',{x:x0+i*KS_W+6,y:sy(pos[i])+4.5,'text-anchor':'middle','font-size':12,'font-weight':'bold','class':'sc-ks'},sym));
+  }
+  function drawSlur(parent, x1, sp1, x2, sp2){
+    var arcY = sy(Math.min(sp1,sp2)) - NRY - 14;
+    parent.appendChild(el('path',{d:'M '+x1+' '+(sy(sp1)-NRY-2)+' C '+(x1+4)+' '+arcY+','+(x2-4)+' '+arcY+','+x2+' '+(sy(sp2)-NRY-2),fill:'none','stroke-width':1.5,'stroke-linecap':'round','class':'sc-slur'}));
+  }
+
+  function buildScale(){
+    svg = document.getElementById('sc-svg');
+    if (!svg) return;
+    var W = document.getElementById('sc-stage').clientWidth || 360;
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.setAttribute('height', H);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    fixedG = el('g', {});
+    moveG  = el('g', {'id':'sc-move'});
+    svg.appendChild(fixedG); svg.appendChild(moveG);
+    // 固定: 五線(全幅) + 判定ライン
+    for (var i=0;i<5;i++) fixedG.appendChild(el('line',{x1:0,y1:sy(i),x2:W,y2:sy(i),'class':'sc-staff'}));
+    fixedG.appendChild(el('line',{x1:JUDGE_X,y1:sy(-1.3),x2:JUDGE_X,y2:sy(5.3),'class':'sc-judge'}));
+    // 音部記号
+    moveG.appendChild(el('text',{x:10,y:sy(2.8)+2,'font-size':52,'font-family':'Georgia,"Times New Roman",serif','class':'sc-clef'},'𝄞'));
+
+    var ty = currentType(), notes = [], startX;
+
+    if (ty.kind==='lipslur'){
+      startX = CLEF_W + 12;
+      var pairs = lipPairs(curDir), xi = 0;
+      pairs.forEach(function(pr){
+        var nA = lipNote(pr[0]), nB = lipNote(pr[1]);
+        var xA = startX + xi*NS, xB = startX + (xi+1)*NS;
+        var gA = drawNoteGroup(moveG, xA, nA.sp, nA.acc, nA.sol, nA.fing);
+        var gB = drawNoteGroup(moveG, xB, nB.sp, nB.acc, nB.sol, nB.fing);
+        drawSlur(moveG, xA, nA.sp, xB, nB.sp);
+        notes.push({ x:xA, grp:gA, freq:nA.freq, sol:nA.sol, fing:nA.fing });
+        notes.push({ x:xB, grp:gB, freq:nB.freq, sol:nB.sol, fing:nB.fing });
+        xi += 2.6; // ペア間に余白
+      });
+    } else if (ty.kind==='cont'){
+      startX = CLEF_W + 12;
+      var x = startX;
+      KEYS12.forEach(function(k, ki){
+        var ks = (ty.type==='minor' ? MINOR_KS : MAJOR_KS)[k.pc];
+        moveG.appendChild(el('text',{x:x,y:sy(-1.3)-5,'font-size':10,'font-weight':'bold','class':'sc-keylabel'}, k.name));
+        if (ks[0]>0){ drawKeySig(moveG, x, ks[0], ks[1]); x += ks[0]*KS_W + 6; }
+        scaleNotes(k, ty.type, curDir).forEach(function(n){
+          var g = drawNoteGroup(moveG, x, n.sp, null, n.sol, n.fing);
+          notes.push({ x:x, grp:g, freq:n.freq, sol:n.sol, fing:n.fing });
+          x += NS;
+        });
+        if (ki < KEYS12.length-1){ moveG.appendChild(el('line',{x1:x-NS*0.45,y1:sy(-0.5),x2:x-NS*0.45,y2:sy(4.5),'class':'sc-staff'})); x += NS*0.35; }
+      });
+    } else {
+      var key = currentKey(), ks2 = (ty.type==='minor' ? MINOR_KS : MAJOR_KS)[key.pc];
+      startX = CLEF_W + ks2[0]*KS_W + 14;
+      if (ks2[0]>0) drawKeySig(moveG, CLEF_W, ks2[0], ks2[1]);
+      scaleNotes(key, ty.type, curDir).forEach(function(n, idx){
+        var xx = startX + idx*NS;
+        var g = drawNoteGroup(moveG, xx, n.sp, null, n.sol, n.fing);
+        notes.push({ x:xx, grp:g, freq:n.freq, sol:n.sol, fing:n.fing });
+      });
+    }
+    moveG.style.transform = 'translateX('+(JUDGE_X - startX)+'px)';
+    rendered = { startX:startX, notes:notes };
+    setInfo('—','');
+  }
+
+  function setInfo(sol, fing){
+    var s=document.getElementById('sc-sol'), f=document.getElementById('sc-fing');
+    if (s) s.textContent = sol; if (f) f.textContent = fing;
+  }
+
+  function clearTimers(){ timers.forEach(function(t){clearTimeout(t);}); timers=[]; }
+
+  function stopScale(){
+    active = false;
+    clearTimers();
+    if (anim){ try{anim.cancel();}catch(e){} anim=null; }
+    if (scaleGain){ try{scaleGain.disconnect();}catch(e){} scaleGain=null; }
+    if (rendered){
+      moveG.style.transform = 'translateX('+(JUDGE_X - rendered.startX)+'px)';
+      rendered.notes.forEach(function(n){ n.grp.classList.remove('playing'); });
+      setInfo('—','');
+    }
+    var pb=document.getElementById('sc-play-btn'), sb=document.getElementById('sc-stop-btn');
+    if (pb) pb.style.display=''; if (sb) sb.style.display='none';
+  }
+  window.stopScale = stopScale;
+
+  function playScale(){
+    if (active || !rendered) return;
+    var bpm = +(document.getElementById('sc-tempo').value) || 80;
+    var beatDur = 60/bpm;
+    var notes = rendered.notes, N = notes.length, startX = rendered.startX;
+    if (!N) return;
+
+    if (typeof audioCtx === 'undefined' || !audioCtx){
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; }
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    active = true;
+    document.getElementById('sc-play-btn').style.display='none';
+    document.getElementById('sc-stop-btn').style.display='';
+
+    // 発音: 全音を audioCtx 時刻に予約 (ルックアヘッド方式・ドリフトしない)
+    scaleGain = audioCtx.createGain();
+    scaleGain.gain.value = 1;
+    scaleGain.connect(audioCtx.destination);
+    var startAudio = audioCtx.currentTime + LEAD;
+    var vol = (typeof masterVolume !== 'undefined' ? masterVolume : 1) * 0.5;
+    notes.forEach(function(n, i){
+      var t0 = startAudio + i*beatDur, dur = beatDur*0.92;
+      var osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+      osc.type='triangle'; osc.frequency.value = n.freq;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0+0.012);
+      g.gain.setValueAtTime(vol, t0+dur*0.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+      osc.connect(g); g.connect(scaleGain);
+      osc.start(t0); osc.stop(t0+dur+0.02);
+    });
+
+    // 流れる譜面: 単一 WAAPI linear (コンポジタ駆動で滑らか)
+    var animDur = LEAD + (N-1)*beatDur + TAIL_BEATS*beatDur;
+    var tx0  = JUDGE_X - startX + (LEAD/beatDur)*NS;
+    var txEnd = JUDGE_X - startX - ((N-1)+TAIL_BEATS)*NS;
+    anim = moveG.animate(
+      [{transform:'translateX('+tx0+'px)'},{transform:'translateX('+txEnd+'px)'}],
+      {duration: animDur*1000, easing:'linear', fill:'forwards'}
+    );
+    anim.onfinish = function(){ stopScale(); };
+
+    // ハイライト + 情報表示 (判定ライン通過タイミング)
+    notes.forEach(function(n, i){
+      timers.push(setTimeout(function(){
+        if (!active) return;
+        notes.forEach(function(m){ m.grp.classList.remove('playing'); });
+        n.grp.classList.add('playing');
+        setInfo(n.sol, n.fing);
+      }, (LEAD + i*beatDur)*1000));
+    });
+  }
+
+  function currentType(){
+    var id = document.getElementById('sc-type').value;
+    for (var i=0;i<TYPES.length;i++) if (TYPES[i].id===id) return TYPES[i];
+    return TYPES[0];
+  }
+  function currentKey(){
+    var v = document.getElementById('sc-key').value;
+    for (var i=0;i<KEYS12.length;i++) if (String(KEYS12[i].pc)===String(v)) return KEYS12[i];
+    return KEYS12[0];
+  }
+  function updateKeyRowVisibility(){
+    var row = document.getElementById('sc-key-row');
+    if (row) row.style.display = (currentType().kind==='scale') ? '' : 'none';
+  }
+  function populateSelects(){
+    var ts = document.getElementById('sc-type');
+    if (ts){ var cv = ts.value; ts.innerHTML='';
+      TYPES.forEach(function(t){ var o=document.createElement('option'); o.value=t.id; o.textContent=t.name[lang()]||t.name.ja; ts.appendChild(o); });
+      if (cv) ts.value=cv; if (!ts.value) ts.value=TYPES[0].id;
+    }
+    var ks = document.getElementById('sc-key');
+    if (ks){ var kv = ks.value; ks.innerHTML='';
+      KEYS12.forEach(function(k){ var o=document.createElement('option'); o.value=k.pc; o.textContent=k.name; ks.appendChild(o); });
+      if (kv!=='') ks.value=kv; if (ks.value==='') ks.value='0';
+    }
+    updateKeyRowVisibility();
+  }
+
+  // タブ入場時に呼ばれる
+  window.initScaleTab = function(){
+    populateSelects();
+    stopScale();
+    buildScale();
+  };
+
+  // 初期化 (DOM 準備後にイベント結線)
+  document.addEventListener('DOMContentLoaded', function(){
+    populateSelects();
+    var ty = document.getElementById('sc-type');
+    var ky = document.getElementById('sc-key');
+    var tempo = document.getElementById('sc-tempo');
+    var tval = document.getElementById('sc-tempo-val');
+    var pb = document.getElementById('sc-play-btn');
+    var sb = document.getElementById('sc-stop-btn');
+    if (ty) ty.addEventListener('change', function(){ updateKeyRowVisibility(); stopScale(); buildScale(); });
+    if (ky) ky.addEventListener('change', function(){ stopScale(); buildScale(); });
+    document.querySelectorAll('#panel-scale .sc-dir-btn').forEach(function(b){
+      b.addEventListener('click', function(){
+        curDir = b.dataset.dir;
+        document.querySelectorAll('#panel-scale .sc-dir-btn').forEach(function(x){ x.classList.toggle('sel', x===b); });
+        stopScale(); buildScale();
+      });
+    });
+    if (tempo) tempo.addEventListener('input', function(){ if(tval) tval.textContent=this.value; });
+    if (pb) pb.addEventListener('click', playScale);
+    if (sb) sb.addEventListener('click', stopScale);
+    window.addEventListener('resize', function(){ if (document.getElementById('panel-scale').classList.contains('active') && !active) buildScale(); });
+  });
 })();
 </script>
 </body>
