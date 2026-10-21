@@ -2511,6 +2511,23 @@ document.getElementById('prac-start-btn').addEventListener('click', async () => 
 document.getElementById('prac-stop-btn').addEventListener('click', stopPractice);
 
 // ── 基準音選択（常時表示グリッド） ───────────────────────
+// ============================================================
+// 金管風トーン (iOS HarmonyEngine と同じ 5倍音 [1,0.42,0.20,0.11,0.06])
+// createPeriodicWave で基音+2〜5倍音を1オシレータに内包 → 基準音/ハーモニー/基礎練で共用。
+// 第2倍音 = オクターブ上が乗るので存在感(体感音量)が増し、メトロとの音量差も詰まる。
+// ============================================================
+let _brassWave = null, _brassWaveCtx = null;
+function getBrassWave(){
+  if (!audioCtx) return null;
+  if (_brassWave && _brassWaveCtx === audioCtx) return _brassWave;
+  const imag = new Float32Array([0, 1.0, 0.42, 0.20, 0.11, 0.06]); // sin成分 = 基音+2..5倍音
+  const real = new Float32Array(imag.length);
+  _brassWave = audioCtx.createPeriodicWave(real, imag); // 既定で正規化(peak≈1)しクリップ防止
+  _brassWaveCtx = audioCtx;
+  return _brassWave;
+}
+function applyBrass(osc){ const w = getBrassWave(); if (w) osc.setPeriodicWave(w); else osc.type = 'sine'; }
+
 let refToneOsc = null, refToneGain = null, refToneMidi = null, refToneOct = 4;
 
 (function buildRefToneGrid() {
@@ -2563,7 +2580,7 @@ function playRefToneManual(midi) {
     // 新規作成
     refToneOsc = audioCtx.createOscillator();
     refToneGain = audioCtx.createGain();
-    refToneOsc.type = 'sine';
+    applyBrass(refToneOsc);
     refToneOsc.frequency.value = midiToHz(midi);
     refToneGain.gain.value = 0;
     const comp = audioCtx.createDynamicsCompressor();
@@ -3688,7 +3705,7 @@ function startChordOsc() {
   ensOscs = voices.map((v, i) => {
     const osc = audioCtx.createOscillator();
     const g = audioCtx.createGain();
-    osc.type = 'sine';
+    applyBrass(osc);
     osc.frequency.value = ensTuning === 'et'
       ? midiToHz(ensRootMidi + v)  // 平均律: MIDI半音で計算
       : rootHz * v;                 // 純正律: 周波数比で計算
@@ -3835,7 +3852,7 @@ function playEnsSingleNote(voiceVal, idx) {
   ensSingleOsc = audioCtx.createOscillator();
   ensSingleGain = audioCtx.createGain();
   ensSingleGain.gain.value = 0;
-  ensSingleOsc.type = 'sine';
+  applyBrass(ensSingleOsc);
   ensSingleOsc.frequency.value = freq;
   const comp = audioCtx.createDynamicsCompressor();
   comp.threshold.value = -12; comp.ratio.value = 8;
@@ -5804,7 +5821,7 @@ function drawRhythmHeatmap() {
     [1, 3/2].forEach(ratio => {
       const osc = audioCtx.createOscillator();
       const g = audioCtx.createGain();
-      osc.type = 'sine'; osc.frequency.value = rootHz * ratio;
+      applyBrass(osc); osc.frequency.value = rootHz * ratio;
       g.gain.value = 0.4 * masterVolume;
       osc.connect(g); g.connect(audioCtx.destination);
       osc.start();
@@ -7871,15 +7888,20 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
     var startAudio = audioCtx.currentTime + LEAD;
     var vol = (typeof masterVolume !== 'undefined' ? masterVolume : 1) * 0.5;
     notes.forEach(function(n, i){
-      var t0 = startAudio + i*beatDur, dur = beatDur*0.92;
+      var t0 = startAudio + i*beatDur;
+      // レガート: 次の音の直前まで持続。最後の音だけ少し短く切る。
+      var isLast = (i === N-1);
+      var sustain = isLast ? beatDur*0.9 : beatDur;   // 次の音まで繋ぐ
+      var t0end = t0 + sustain;
+      var relStart = t0end - 0.03;                     // 直前で軽く減衰(ブツ切れ防止)
       var osc = audioCtx.createOscillator(), g = audioCtx.createGain();
-      osc.type='triangle'; osc.frequency.value = n.freq;
+      applyBrass(osc); osc.frequency.value = n.freq;   // 金管風トーン
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(vol, t0+0.012);
-      g.gain.setValueAtTime(vol, t0+dur*0.6);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+      g.gain.exponentialRampToValueAtTime(vol, t0+0.02);  // 金管らしいアタック(~20ms)
+      g.gain.setValueAtTime(vol, relStart);               // 直前までフルで持続
+      g.gain.exponentialRampToValueAtTime(0.0001, t0end);
       osc.connect(g); g.connect(scaleGain);
-      osc.start(t0); osc.stop(t0+dur+0.02);
+      osc.start(t0); osc.stop(t0end+0.02);
     });
 
     // 流れる譜面: 単一 WAAPI linear (コンポジタ駆動で滑らか)
