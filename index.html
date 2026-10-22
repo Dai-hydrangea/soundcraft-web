@@ -2898,8 +2898,10 @@ async function startMic() {
   try {
   // マイク入力のためセッションを切替（音量やや下がるがマイク必須）
   setAudioSessionType('playAndRecord');
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const iosConstraints = {
+  // チューナーは「生音」が命 → 全プラットフォームでまず無加工(ノイズ抑制/AGC/エコー除去OFF)を試す。
+  //   AGC(自動音量)やノイズ抑制が効くと、管楽器のロングトーンが減衰/変調され音程検出がブレる。
+  //   (iOSだけでなくAndroid/PCでも同様。拒否された場合のみ従来の {audio:true} にフォールバック)
+  const cleanConstraints = {
     audio: { channelCount: 1, echoCancellation: false,
              noiseSuppression: false, autoGainControl: false },
     video: false
@@ -2907,14 +2909,10 @@ async function startMic() {
   const fallbackConstraints = { audio: true, video: false };
 
   let stream;
-  if (isIOS) {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia(iosConstraints);
-    } catch(e) {
-      // iOS でも制約が拒否された場合はフォールバック
-      stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
-    }
-  } else {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia(cleanConstraints);
+  } catch(e) {
+    // 制約が拒否された端末は従来設定にフォールバック(ここでの失敗=本当の権限拒否は上位 catch へ)
     stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
   }
 
