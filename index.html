@@ -5848,9 +5848,11 @@ function drawRhythmHeatmap() {
       // デバッググラフ連動
       if (card.id === 'graph-wrap') graphVisible = !card.classList.contains('collapsed');
     });
-    // 保存された状態を復元
+    // 保存された状態を復元。設定タブのカードは既定で畳む(未保存時のみ)。
     const key = 'collapse_' + (card.id || heading.textContent.trim());
-    if (localStorage.getItem(key) === '1') {
+    const stored = localStorage.getItem(key);
+    const inSettings = !!card.closest('#panel-settings');
+    if (stored === '1' || (stored === null && inSettings)) {
       card.classList.add('collapsed');
       if (card.id === 'graph-wrap') graphVisible = false;
     }
