@@ -531,22 +531,35 @@ tr:last-child td { border-bottom: none; }
 </div>
 
 <style>
-#now-display .tuner-row { display:flex; gap:10px; align-items:stretch; height:320px; }
+#now-display .tuner-row { display:flex; gap:10px; align-items:stretch; }
 #now-display .tuner-main { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; justify-content:center; }
-#now-display .ref-col { flex:0 0 76px; align-self:stretch; display:flex; flex-direction:column; gap:6px;
-  min-height:0; border-left:1px solid var(--border); padding-left:8px; }
-#ref-rotary { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; gap:4px; }
-#ref-rotary .ref-note { flex:1 1 0; min-height:0; border:1px solid var(--border);
-  background:var(--surface2); color:var(--text); border-radius:7px; font-size:12.5px;
-  font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center;
+
+/* 基準音カード (iPhone CompactNoteSlider 準拠: ▶ + 横レール + オクターブ) */
+#ref-card .ref-head { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+#ref-card .ref-head-label { font-size:12px; font-weight:600; color:var(--text2); }
+#ref-card .ref-head-note { font-size:15px; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums; }
+#ref-card .ref-head-note.playing { color:var(--accent); }
+#ref-card .ref-head-playing { font-size:11px; font-weight:700; color:var(--accent); margin-left:auto; }
+#ref-card .ref-head-playing[hidden] { display:none; }
+.ref-slider-row { display:flex; align-items:center; gap:8px; }
+.ref-play-btn { flex:0 0 auto; width:44px; height:44px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--accent2); color:#fff; font-size:17px; line-height:1; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.18); -webkit-tap-highlight-color:transparent; }
+.ref-play-btn.playing { background:var(--danger); }
+.ref-rail { position:relative; flex:1 1 auto; min-width:0; height:44px; border-radius:22px;
+  background:var(--surface2); border:1px solid var(--border); overflow:hidden; touch-action:none; -webkit-tap-highlight-color:transparent; }
+.ref-rail .ref-thumb { position:absolute; top:4px; bottom:4px; border-radius:18px; background:var(--accent);
+  box-shadow:0 1px 3px rgba(0,0,0,.25); transition:left .16s cubic-bezier(.3,.7,.3,1.2); z-index:1; pointer-events:none; }
+.ref-rail .ref-cells { position:absolute; inset:0; display:flex; z-index:2; }
+.ref-rail .ref-cell { flex:1 1 0; min-width:0; display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:var(--text2); cursor:pointer; }
+.ref-rail .ref-cell.sel { color:#fff; }
+.ref-oct { flex:0 0 auto; display:flex; align-items:center; gap:4px; }
+.ref-oct-step { width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:var(--surface2);
+  color:var(--accent); font-size:16px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;
   -webkit-tap-highlight-color:transparent; }
-#ref-rotary .ref-note.sel { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
-.ref-oct-sel { flex:0 0 auto; display:flex; gap:3px; }
-.ref-oct-sel button { flex:1; min-width:0; border:1px solid var(--border); background:var(--surface2);
-  color:var(--text2); border-radius:6px; padding:5px 0; font-size:11.5px; font-weight:600; cursor:pointer;
-  -webkit-tap-highlight-color:transparent; }
-.ref-oct-sel button.sel { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
-#now-display .ref-hint { font-size:11px; color:var(--text2); text-align:center; margin-top:8px; }
+.ref-oct-val { min-width:16px; text-align:center; font-size:15px; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums; }
+#ref-card .ref-hint { font-size:11px; color:var(--text2); text-align:center; margin-top:10px; }
 </style>
 <!-- 計測タブ -->
 <div class="panel active" id="panel-measure">
@@ -566,12 +579,7 @@ tr:last-child td { border-bottom: none; }
     <div id="state-badge" class="silent">SILENT</div>
     <div id="rms-display" style="font-size:13px;color:var(--accent);margin-top:6px;font-family:monospace;">—</div>
     </div><!-- /tuner-main -->
-    <div class="ref-col">
-      <div id="ref-rotary" aria-label="基準音"></div>
-      <div id="ref-oct-sel" class="ref-oct-sel" aria-label="オクターブ"></div>
-    </div>
     </div><!-- /tuner-row -->
-    <div class="ref-hint" data-i18n="select_note">右のバーをタップで基準音を再生/停止（下＝低音）</div>
     <!-- 音程フィードバック (iOS非搭載につき削除) -->
     <div style="margin-top:14px; display:none; gap:10px; justify-content:center;">
       <button class="btn btn-success" id="prac-start-btn" style="flex:1;max-width:280px;padding:12px;font-size:15px;" data-i18n="pitch_feedback">▶ 音程フィードバック</button>
@@ -588,6 +596,24 @@ tr:last-child td { border-bottom: none; }
         ⚠️ イヤホン推奨：スピーカー使用時はマイクが基準音を拾い誤検出することがあります
       </p>
     </div>
+  </div>
+  <!-- 基準音 (iPhone準拠: 横スライドレール + オクターブ) -->
+  <div class="card" id="ref-card">
+    <div class="ref-head">
+      <span class="ref-head-label" data-i18n="ref_tone">基準音</span>
+      <span class="ref-head-note" id="ref-head-note">—</span>
+      <span class="ref-head-playing" id="ref-head-playing" data-i18n="playing" hidden>再生中</span>
+    </div>
+    <div class="ref-slider-row">
+      <button class="ref-play-btn" id="ref-play-btn" type="button" aria-label="Play/Stop">▶</button>
+      <div class="ref-rail" id="ref-rail" aria-label="基準音"></div>
+      <div class="ref-oct" id="ref-oct-sel" aria-label="オクターブ">
+        <button class="ref-oct-step" id="ref-oct-dec" type="button" aria-label="octave down">−</button>
+        <span class="ref-oct-val" id="ref-oct-val">4</span>
+        <button class="ref-oct-step" id="ref-oct-inc" type="button" aria-label="octave up">＋</button>
+      </div>
+    </div>
+    <div class="ref-hint" data-i18n="select_note">レールをスライドで音名、▶で再生／停止</div>
   </div>
   <!-- メトロノーム (チューナータブ内蔵・エンジンはリズムタブと共有) -->
   <div class="card" id="metro-mini-card">
@@ -1456,9 +1482,19 @@ const I18N = {
     "zh": "🎵 基准音"
   },
   "select_note": {
-    "ja": "右のバーをタップで基準音を再生/停止（下＝低音）",
-    "en": "Tap the bar to play/stop a reference tone (low = bottom)",
-    "zh": "点击右侧音条播放/停止基准音（下＝低音）"
+    "ja": "レールをスライドで音名、▶で再生／停止",
+    "en": "Slide the rail to pick a note, ▶ to play/stop",
+    "zh": "滑动音条选择音名，▶ 播放/停止"
+  },
+  "ref_tone": {
+    "ja": "基準音",
+    "en": "Reference",
+    "zh": "基准音"
+  },
+  "playing": {
+    "ja": "再生中",
+    "en": "Playing",
+    "zh": "播放中"
   },
   "octave": {
     "ja": "オクターブ",
@@ -2611,10 +2647,8 @@ function applyNotation() {
   document.getElementById('notation-german').classList.toggle('sel', useGerman);
   document.getElementById('notation-english').classList.toggle('sel', !useGerman);
   const names = useGerman ? GERMAN : ENGLISH;
-  // 基準音ロータリーのラベル更新
-  document.querySelectorAll('#ref-rotary .ref-note').forEach(btn => {
-    btn.textContent = noteLabel(+btn.dataset.midi);
-  });
+  // 基準音レールのラベル更新
+  if (typeof renderRefRail === 'function') { renderRefRail(); if (typeof updateRefHead === 'function') updateRefHead(); }
   // 課題の根音グリッド再構築
   document.querySelectorAll('#chal-root-grid .chal-btn').forEach(btn => {
     const midi = +btn.dataset.midi;
@@ -2694,59 +2728,98 @@ function makeLimiter(){
 
 let refToneOsc = null, refToneGain = null, refToneMidi = null, refToneOct = 4;
 
-// 基準音ロータリー: 1オクターブ分を縦に積む (上=高音 / 下=低音)。
-// バー下のオクターブ選択で表示オクターブを切替。タップで再生/停止。
-let refOct = 4;                       // 既定 = 4オクターブ(B♭4=midi70 を含む)
+// 基準音 (iPhone CompactNoteSlider 準拠): ▶再生 + 横レール(12音・つまみスライド) + オクターブ±
+let refOct = 4;                       // 既定 = 4オクターブ
+let refPc = 10;                       // 既定 B♭ (A#=pc10) → B♭4 = midi70
 const REF_OCT_MIN = 2, REF_OCT_MAX = 6;
 
-function refNoteClick(midi) {
-  if (refToneMidi === midi) {
+function selectedRefMidi() { return 12 * (refOct + 1) + refPc; }  // 科学的オクターブ: midi60 = C4
+
+function updateRefHead() {
+  const playing = refToneMidi !== null;
+  const noteEl = document.getElementById('ref-head-note');
+  if (noteEl) { noteEl.textContent = noteLabel(selectedRefMidi()) + refOct; noteEl.classList.toggle('playing', playing); }
+  const playingEl = document.getElementById('ref-head-playing'); if (playingEl) playingEl.hidden = !playing;
+  const pb = document.getElementById('ref-play-btn'); if (pb) { pb.classList.toggle('playing', playing); pb.textContent = playing ? '■' : '▶'; }
+  const ov = document.getElementById('ref-oct-val'); if (ov) ov.textContent = refOct;
+}
+
+function renderRefRail() {
+  const rail = document.getElementById('ref-rail');
+  if (!rail) return;
+  rail.innerHTML = '';
+  const thumb = document.createElement('div');
+  thumb.className = 'ref-thumb';
+  thumb.style.width = 'calc(' + (100 / 12) + '% - 4px)';
+  thumb.style.left = 'calc(' + (refPc * 100 / 12) + '% + 2px)';
+  rail.appendChild(thumb);
+  const cells = document.createElement('div');
+  cells.className = 'ref-cells';
+  for (let pc = 0; pc < 12; pc++) {
+    const c = document.createElement('div');
+    c.className = 'ref-cell' + (pc === refPc ? ' sel' : '');
+    c.dataset.pc = pc;
+    c.textContent = noteLabel(12 * (refOct + 1) + pc);
+    cells.appendChild(c);
+  }
+  rail.appendChild(cells);
+}
+
+function syncRefThumb() {
+  const rail = document.getElementById('ref-rail');
+  if (!rail) return;
+  const thumb = rail.querySelector('.ref-thumb');
+  if (thumb) thumb.style.left = 'calc(' + (refPc * 100 / 12) + '% + 2px)';
+  rail.querySelectorAll('.ref-cell').forEach(c => c.classList.toggle('sel', +c.dataset.pc === refPc));
+}
+
+function setRefPc(pc) {
+  pc = Math.max(0, Math.min(11, pc));
+  if (pc === refPc) return;
+  refPc = pc;
+  syncRefThumb();
+  updateRefHead();
+  if (refToneMidi !== null) playRefToneManual(selectedRefMidi());  // 再生中なら追従
+}
+
+function setRefOct(o) {
+  o = Math.max(REF_OCT_MIN, Math.min(REF_OCT_MAX, o));
+  if (o === refOct) return;
+  refOct = o;
+  updateRefHead();
+  if (refToneMidi !== null) playRefToneManual(selectedRefMidi());
+}
+
+function toggleRefPlay() {
+  if (refToneMidi !== null) {
     stopRefToneManual();
-    document.getElementById('prac-start-btn').className = 'btn btn-success';
-    return;
-  }
-  if (pracActive) stopPractice();
-  playRefToneManual(midi);
-  const pb = document.getElementById('prac-start-btn');
-  pb.className = 'btn'; pb.style.display = '';
-  document.getElementById('prac-stop-btn').style.display = 'none';
-}
-
-function renderRefNotes() {
-  const col = document.getElementById('ref-rotary');
-  if (!col) return;
-  col.innerHTML = '';
-  // C..B (pc 0..11) を 高音(B)→低音(C) に積む
-  for (let pc = 11; pc >= 0; pc--) {
-    const midi = 12 * (refOct + 1) + pc;   // 科学的オクターブ: midi60 = C4
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'ref-note';
-    b.dataset.midi = midi;
-    b.textContent = noteLabel(midi);
-    if (refToneMidi === midi) b.classList.add('sel');
-    b.addEventListener('click', () => refNoteClick(midi));
-    col.appendChild(b);
+    const psb = document.getElementById('prac-start-btn'); if (psb) psb.className = 'btn btn-success';
+  } else {
+    if (pracActive) stopPractice();
+    playRefToneManual(selectedRefMidi());
+    const pb = document.getElementById('prac-start-btn'); if (pb) { pb.className = 'btn'; pb.style.display = ''; }
+    const ps = document.getElementById('prac-stop-btn'); if (ps) ps.style.display = 'none';
   }
 }
 
-(function buildRefOctave() {
-  const sel = document.getElementById('ref-oct-sel');
-  if (!sel) return;
-  for (let o = REF_OCT_MIN; o <= REF_OCT_MAX; o++) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.dataset.oct = o;
-    b.textContent = o;
-    if (o === refOct) b.classList.add('sel');
-    b.addEventListener('click', () => {
-      refOct = o;
-      sel.querySelectorAll('button').forEach(x => x.classList.toggle('sel', +x.dataset.oct === o));
-      renderRefNotes();
-    });
-    sel.appendChild(b);
+(function buildRefRail() {
+  const rail = document.getElementById('ref-rail');
+  if (!rail) return;
+  renderRefRail();
+  updateRefHead();
+  function pcFromX(clientX) {
+    const r = rail.getBoundingClientRect();
+    const x = Math.max(0, Math.min(r.width - 0.5, clientX - r.left));
+    return Math.floor(x / (r.width / 12));
   }
-  renderRefNotes();
+  let dragging = false;
+  rail.addEventListener('pointerdown', (e) => { dragging = true; try { rail.setPointerCapture(e.pointerId); } catch(_){} setRefPc(pcFromX(e.clientX)); });
+  rail.addEventListener('pointermove', (e) => { if (dragging) setRefPc(pcFromX(e.clientX)); });
+  rail.addEventListener('pointerup', () => { dragging = false; });
+  rail.addEventListener('pointercancel', () => { dragging = false; });
+  const pb = document.getElementById('ref-play-btn'); if (pb) pb.addEventListener('click', toggleRefPlay);
+  const dec = document.getElementById('ref-oct-dec'); if (dec) dec.addEventListener('click', () => setRefOct(refOct - 1));
+  const inc = document.getElementById('ref-oct-inc'); if (inc) inc.addEventListener('click', () => setRefOct(refOct + 1));
 })();
 
 function playRefToneManual(midi) {
@@ -2774,10 +2847,12 @@ function playRefToneManual(midi) {
     refToneGain.gain.setTargetAtTime(0.8 * masterVolume, audioCtx.currentTime, 0.05);
   }
   refToneMidi = midi;
-  // ロータリーの選択ハイライト
-  document.querySelectorAll('#ref-rotary .ref-note').forEach(b => b.classList.remove('sel'));
-  const selBtn = document.querySelector(`#ref-rotary .ref-note[data-midi="${midi}"]`);
-  if (selBtn) { selBtn.classList.add('sel'); selBtn.scrollIntoView({ block:'nearest' }); }
+  // 任意の midi で呼ばれても UI を同期 (練習モードの自動基準音セット等)
+  refPc = ((midi % 12) + 12) % 12;
+  const oct = Math.floor(midi / 12) - 1;
+  if (oct >= REF_OCT_MIN && oct <= REF_OCT_MAX) refOct = oct;
+  syncRefThumb();
+  updateRefHead();
 }
 
 function stopRefToneManual() {
@@ -2790,7 +2865,7 @@ function stopRefToneManual() {
   setTimeout(() => {
     if (osc) { try { osc.stop(); } catch(e){} }
   }, 500);
-  document.querySelectorAll('#ref-rotary .ref-note').forEach(b => b.classList.remove('sel'));
+  updateRefHead();
 }
 
 // ============================================================
@@ -7571,10 +7646,10 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
           ja: '「Pitch Feedback」を押すと、吹いた音に合わせて正しいピッチのサイン波が自動再生されます。',
           en: '"Pitch Feedback" auto-plays a sine wave matching the correct pitch of your note.',
           zh: '"Pitch Feedback"自动播放与你吹奏音高匹配的正弦波。' },
-        { target: '#ref-rotary', pos: 'bottom',
-          ja: '右のバーで音名をタップすると基準音が再生されます。下のボタンでオクターブも変更可能。ロングトーン練習に最適！',
-          en: 'Tap a note to play a reference tone. Octave adjustable. Great for long-tone practice!',
-          zh: '点击音名播放参考音。可调八度。适合长音练习！' },
+        { target: '#ref-card', pos: 'top',
+          ja: 'レールをスライドで音名を選び、▶で基準音を再生。右の±でオクターブも変更可。ロングトーン練習に最適！',
+          en: 'Slide the rail to pick a note and press ▶ to play. Adjust octave with ±. Great for long-tone practice!',
+          zh: '滑动音条选择音名，按▶播放基准音。用±调八度。适合长音练习！' },
         { target: '#graph-wrap', pos: 'top',
           ja: 'ピッチ履歴：直近の音程変化がリアルタイムにグラフ表示されます。▼で折りたたみ可能。',
           en: 'Pitch History: real-time graph of recent pitch changes. Click ▼ to collapse.',
