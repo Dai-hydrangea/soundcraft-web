@@ -148,6 +148,60 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
 .mseg { display: flex; flex: 1; background: var(--surface2); border-radius: 10px; padding: 3px; }
 .mseg button { flex: 1; min-width: 0; background: transparent; border: none; color: var(--text2); border-radius: 8px; padding: 8px 2px; font-size: 13px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .mseg button.sel { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+#metro-sound-seg button { font-size: 11.5px; padding: 8px 1px; white-space: nowrap; letter-spacing: -0.3px; }
+
+/* ===== メトロノーム 下部アクションバー (iPhone準拠) ===== */
+#panel-rhythm #rhythm-pendulum-card { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 40vh; }
+#panel-rhythm #rhythm-dots-big { padding: 20px 0; }
+.metro-actionbar { margin: 2px auto 18px; max-width: 520px; }
+.metro-badges { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 16px; }
+.metro-sig-badge { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 6px 14px; min-width: 62px;
+  cursor: pointer; box-shadow: var(--card-shadow); -webkit-tap-highlight-color: transparent; }
+.metro-sig-badge.open { border-color: var(--accent); }
+.metro-bpm-badge { display: flex; align-items: center; gap: 6px; }
+.metro-bpm-step { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface);
+  color: var(--accent); font-size: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent; }
+.metro-bpm-step:active { background: var(--surface2); }
+.metro-bpm-main { display: flex; align-items: baseline; gap: 2px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 4px 14px; cursor: pointer; box-shadow: var(--card-shadow); -webkit-tap-highlight-color: transparent; }
+.metro-bpm-main.open { border-color: var(--accent); }
+.metro-bpm-main .q { font-size: 20px; font-weight: 700; color: var(--text2); }
+.metro-bpm-main strong { font-size: 48px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1; }
+.metro-bpm-main.running .q, .metro-bpm-main.running strong { color: var(--accent); }
+.metro-dials { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+.metro-dial { justify-self: center; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 70px; height: 70px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--text); cursor: pointer; gap: 2px; box-shadow: var(--card-shadow); -webkit-tap-highlight-color: transparent; padding: 0; }
+.metro-dials .metro-dial:first-child { justify-self: end; margin-right: 10px; }
+.metro-dials .metro-dial:last-child { justify-self: start; margin-left: 10px; }
+.metro-dial .dial-title { font-size: 9px; color: var(--text2); letter-spacing: 0.5px; }
+.metro-dial .dial-val { font-size: 12px; font-weight: 700; max-width: 62px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.metro-play-slot { justify-self: center; position: relative; width: 82px; height: 82px; }
+.metro-play { position: absolute; inset: 0; width: 82px; height: 82px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--accent2); color: #fff; font-size: 30px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,.22); -webkit-tap-highlight-color: transparent; transition: transform .1s; }
+.metro-play:active { transform: scale(.93); }
+.metro-play--stop { background: var(--danger); }
+.metro-play--tap { background: var(--surface2); color: var(--text2); font-size: 24px; }
+
+/* ===== メトロノーム ボトムシート ===== */
+.metro-sheet { position: fixed; inset: 0; z-index: 200; }
+.metro-sheet[hidden] { display: none; }
+.metro-sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.35); }
+.metro-sheet-panel { position: absolute; left: 0; right: 0; bottom: 0; background: var(--bg); border-top-left-radius: 20px; border-top-right-radius: 20px;
+  padding: 10px 18px 32px; box-shadow: 0 -4px 20px rgba(0,0,0,.18); max-width: 700px; margin: 0 auto; animation: metroSheetUp .22s ease; }
+@keyframes metroSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.metro-sheet-grip { width: 40px; height: 4px; border-radius: 2px; background: var(--border); margin: 2px auto 12px; }
+.metro-sheet-head { display: flex; align-items: center; justify-content: space-between; font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.metro-sheet-head .metro-sheet-val { font-size: 16px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.metro-sheet-body .rhythm-bpm-row { margin-bottom: 14px; }
+.metro-sheet-body .bpm-presets { display: grid !important; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 4px; }
+.metro-sheet-body .bpm-preset-btn { padding: 10px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); color: var(--text2); font-size: 14px; cursor: pointer; }
+.metro-sheet-body .bpm-preset-btn.sel { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+.metro-sheet-body .rhythm-pattern-row { display: flex; gap: 8px; }
+.metro-sheet-body .sig-subhead { font-size: 12px; color: var(--text2); margin: 14px 0 6px; }
 
 /* ===== 計測タブ ===== */
 #now-display { text-align: center; }
@@ -470,14 +524,19 @@ tr:last-child td { border-bottom: none; }
 <style>
 #now-display .tuner-row { display:flex; gap:10px; align-items:stretch; height:320px; }
 #now-display .tuner-main { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; justify-content:center; }
-#ref-rotary { flex:0 0 74px; min-height:0; align-self:stretch; display:flex; flex-direction:column; gap:4px;
-  overflow-y:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:y proximity;
-  border-left:1px solid var(--border); padding-left:8px; }
-#ref-rotary::-webkit-scrollbar { width:0; height:0; }
-#ref-rotary .ref-note { flex:0 0 auto; scroll-snap-align:center; border:1px solid var(--border);
-  background:var(--surface2); color:var(--text); border-radius:7px; padding:5px 0; font-size:12.5px;
-  font-weight:600; cursor:pointer; text-align:center; -webkit-tap-highlight-color:transparent; }
+#now-display .ref-col { flex:0 0 76px; align-self:stretch; display:flex; flex-direction:column; gap:6px;
+  min-height:0; border-left:1px solid var(--border); padding-left:8px; }
+#ref-rotary { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; gap:4px; }
+#ref-rotary .ref-note { flex:1 1 0; min-height:0; border:1px solid var(--border);
+  background:var(--surface2); color:var(--text); border-radius:7px; font-size:12.5px;
+  font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  -webkit-tap-highlight-color:transparent; }
 #ref-rotary .ref-note.sel { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+.ref-oct-sel { flex:0 0 auto; display:flex; gap:3px; }
+.ref-oct-sel button { flex:1; min-width:0; border:1px solid var(--border); background:var(--surface2);
+  color:var(--text2); border-radius:6px; padding:5px 0; font-size:11.5px; font-weight:600; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; }
+.ref-oct-sel button.sel { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
 #now-display .ref-hint { font-size:11px; color:var(--text2); text-align:center; margin-top:8px; }
 </style>
 <!-- 計測タブ -->
@@ -493,7 +552,10 @@ tr:last-child td { border-bottom: none; }
     <div id="state-badge" class="silent">SILENT</div>
     <div id="rms-display" style="font-size:13px;color:var(--accent);margin-top:6px;font-family:monospace;">—</div>
     </div><!-- /tuner-main -->
-    <div id="ref-rotary" aria-label="基準音"></div>
+    <div class="ref-col">
+      <div id="ref-rotary" aria-label="基準音"></div>
+      <div id="ref-oct-sel" class="ref-oct-sel" aria-label="オクターブ"></div>
+    </div>
     </div><!-- /tuner-row -->
     <div class="ref-hint" data-i18n="select_note">右のバーをタップで基準音を再生/停止（下＝低音）</div>
     <!-- 音程フィードバック (iOS非搭載につき削除) -->
@@ -517,7 +579,6 @@ tr:last-child td { border-bottom: none; }
   <div class="card" id="metro-mini-card">
     <div class="metro-mini-top">
       <h2 data-i18n="metro_title" style="margin:0">メトロノーム</h2>
-      <span id="metro-mini-dots" class="metro-mini-dots">○○○○</span>
     </div>
     <div id="metro-pendulum" aria-hidden="true">
       <div class="pend-base"></div>
@@ -792,60 +853,84 @@ tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
-<!-- fixed: リズム操作 -->
-<div id="rhythm-sticky" class="tab-sticky" data-for-tab="rhythm" style="display:none;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;">
-    <div id="rhythm-beat-dots" style="display:flex;justify-content:center;gap:12px;font-size:28px;margin:4px 0;min-height:36px;letter-spacing:4px;">
-      ○○○○
-    </div>
-    <div style="display:flex;gap:8px;margin-top:4px;">
-      <button class="btn btn-success" id="rhythm-start-btn" style="flex:7;padding:12px;font-size:15px;font-weight:700" data-i18n="start">▶ 開始</button>
-      <button class="btn btn-danger" id="rhythm-stop-btn" style="flex:7;padding:12px;font-size:15px;font-weight:700;display:none" data-i18n="stop">■ 停止</button>
-      <button class="btn" id="tap-tempo-btn" style="flex:3;padding:12px;font-size:14px;font-weight:600;display:none">🎤 Tap</button>
-    </div>
-  </div>
-</div>
-
 <!-- リズムタブ -->
 <div class="panel" id="panel-rhythm">
-  <!-- 大きな振り子 (iOS v4.7 メトロノーム画面のメイン) -->
+  <!-- メトロノーム表示 (振り子 / 玉+振り子 / 玉 を表示モードで切替) -->
   <div class="card" id="rhythm-pendulum-card">
     <div id="rhythm-pendulum" aria-hidden="true">
       <div class="pend-base"></div>
       <div class="pend-arm"><span class="pend-bob"></span></div>
       <div class="pend-pivot"></div>
     </div>
+    <div id="rhythm-dots-big" style="display:none">○○○○</div>
   </div>
-  <!-- 音玉(拍ドット)表示 -->
-  <div class="card" id="rhythm-dots-card" style="display:none">
-    <div id="rhythm-dots-big">○○○○</div>
-  </div>
-  <!-- 表示・音色の切替 (iPhone準拠) -->
-  <div class="card" id="metro-display-controls">
-    <div class="mseg-row">
-      <span class="mseg-label" data-i18n="metro_visual">表示</span>
-      <div class="mseg" id="metro-visual-seg">
-        <button type="button" data-vis="pendulum" class="sel" data-i18n="metro_pendulum">振り子</button>
-        <button type="button" data-vis="dots" data-i18n="metro_dots">音玉</button>
+
+  <!-- 下部アクションバー (iPhone準拠): [拍子][BPM] / [音色] ▶ [表示] -->
+  <div class="metro-actionbar">
+    <div class="metro-badges">
+      <button class="metro-sig-badge" id="metro-sig-badge" type="button">4/4</button>
+      <div class="metro-bpm-badge">
+        <button class="metro-bpm-step" id="metro-bpm-minus" type="button" aria-label="BPM -">−</button>
+        <button class="metro-bpm-main" id="metro-bpm-open" type="button"><span class="q">♩=</span><strong id="metro-bpm-val">80</strong></button>
+        <button class="metro-bpm-step" id="metro-bpm-plus" type="button" aria-label="BPM +">＋</button>
       </div>
     </div>
-    <div class="mseg-row">
-      <span class="mseg-label" data-i18n="metro_sound">音色</span>
-      <div class="mseg" id="metro-sound-seg">
-        <button type="button" data-snd="wood" class="sel" data-i18n="metro_wood">木</button>
-        <button type="button" data-snd="electronic" data-i18n="metro_elec">電子音</button>
-        <button type="button" data-snd="electronicHigh" data-i18n="metro_elec2">電子音2</button>
-        <button type="button" data-snd="claves" data-i18n="metro_claves">クラベス</button>
+    <div class="metro-dials">
+      <button class="metro-dial" id="metro-sound-dial" type="button">
+        <span class="dial-title" data-i18n="metro_sound">音色</span>
+        <span class="dial-val" id="metro-sound-val">木</span>
+      </button>
+      <div class="metro-play-slot">
+        <button class="metro-play" id="rhythm-start-btn" type="button" aria-label="Start">▶</button>
+        <button class="metro-play metro-play--stop" id="rhythm-stop-btn" type="button" aria-label="Stop" style="display:none">■</button>
+        <button class="metro-play metro-play--tap" id="tap-tempo-btn" type="button" style="display:none">🎤</button>
       </div>
+      <button class="metro-dial" id="metro-visual-dial" type="button">
+        <span class="dial-title" data-i18n="metro_visual">表示</span>
+        <span class="dial-val" id="metro-visual-val">振り子</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 隠しセグメント(旧UI・JSが参照するため残置) -->
+  <div id="metro-visual-seg" style="display:none">
+    <button type="button" data-vis="pendulum" class="sel"></button>
+    <button type="button" data-vis="both"></button>
+    <button type="button" data-vis="dots"></button>
+  </div>
+  <div id="metro-sound-seg" style="display:none">
+    <button type="button" data-snd="wood" class="sel"></button>
+    <button type="button" data-snd="electronic"></button>
+    <button type="button" data-snd="electronicHigh"></button>
+    <button type="button" data-snd="claves"></button>
+    <button type="button" data-snd="mechanical"></button>
+  </div>
+
+  <!-- テンポシート (ボトムシート) -->
+  <div class="metro-sheet" id="tempo-sheet" hidden>
+    <div class="metro-sheet-backdrop" data-sheet-close></div>
+    <div class="metro-sheet-panel">
+      <div class="metro-sheet-grip"></div>
+      <div class="metro-sheet-head"><span data-i18n="scale_tempo">テンポ</span><span class="metro-sheet-val"><strong id="tempo-sheet-val">80</strong> BPM</span></div>
+      <div class="metro-sheet-body" id="tempo-sheet-body"></div>
+    </div>
+  </div>
+  <!-- 拍子シート (ボトムシート) -->
+  <div class="metro-sheet" id="signature-sheet" hidden>
+    <div class="metro-sheet-backdrop" data-sheet-close></div>
+    <div class="metro-sheet-panel">
+      <div class="metro-sheet-grip"></div>
+      <div class="metro-sheet-head"><span data-i18n="meter">拍子</span></div>
+      <div class="metro-sheet-body" id="signature-sheet-body"></div>
     </div>
   </div>
   <div class="card" style="display:none">
     <h2 data-i18n="debug_graph">デバッググラフ</h2>
     <canvas class="sub-graph-canvas" id="rhythm-graph-canvas"></canvas>
   </div>
-  <div class="card">
+  <div class="card" id="rhythm-practice-card" style="display:none">
     <h2><span data-i18n="rhythm_practice">リズム練習</span> <small style="font-size:0.6em;font-weight:400;color:var(--text2)" data-i18n="rhythm_desc">タンギングのある奏法向け</small></h2>
-    <div class="rhythm-bpm-row">
+    <div class="rhythm-bpm-row" id="tempo-move-bpmrow">
       <span style="font-size:12px;color:var(--text2);white-space:nowrap">BPM</span>
       <input type="range" id="rhythm-bpm-slider" min="40" max="200" value="80" step="1">
       <input type="number" id="rhythm-bpm-num" min="40" max="200" value="80" step="1">
@@ -862,15 +947,11 @@ tr:last-child td { border-bottom: none; }
       <button class="bpm-preset-btn" data-bpm="160">160</button>
     </div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:4px" data-i18n="meter">拍子</div>
-    <div class="rhythm-pattern-row">
+    <div class="rhythm-pattern-row" id="sig-move-meters">
       <button class="rhythm-meter-btn" data-meter="2" data-groups="2">2/4</button>
       <button class="rhythm-meter-btn" data-meter="3" data-groups="3">3/4</button>
       <button class="rhythm-meter-btn sel" data-meter="4" data-groups="4">4/4</button>
       <button class="rhythm-meter-btn" data-meter="5" data-groups="5">5/4</button>
-      <button class="rhythm-meter-btn" data-meter="6" data-groups="6">6/8</button>
-      <button class="rhythm-meter-btn" data-meter="7" data-groups="7">7/8</button>
-      <button class="rhythm-meter-btn" data-meter="9" data-groups="9">9/8</button>
-      <button class="rhythm-meter-btn" data-meter="12" data-groups="12">12/8</button>
     </div>
     <details style="margin:4px 0;display:none">
       <summary style="font-size:12px;color:var(--accent);cursor:pointer;padding:4px 0">▸ 変拍子・複合拍子</summary>
@@ -1292,12 +1373,14 @@ const I18N = {
   },
   "metro_visual": { "ja": "表示", "en": "View", "zh": "显示" },
   "metro_pendulum": { "ja": "振り子", "en": "Pendulum", "zh": "钟摆" },
-  "metro_dots": { "ja": "音玉", "en": "Beats", "zh": "拍点" },
+  "metro_dots": { "ja": "玉", "en": "Beats", "zh": "拍点" },
+  "metro_both": { "ja": "玉+振り子", "en": "Both", "zh": "两者" },
   "metro_sound": { "ja": "音色", "en": "Sound", "zh": "音色" },
   "metro_wood": { "ja": "木", "en": "Wood", "zh": "木" },
   "metro_elec": { "ja": "電子音", "en": "Beep", "zh": "电子" },
   "metro_elec2": { "ja": "電子音2", "en": "Beep Hi", "zh": "电子2" },
   "metro_claves": { "ja": "クラベス", "en": "Claves", "zh": "响棒" },
+  "metro_mech": { "ja": "機械式", "en": "Mech", "zh": "机械" },
   "scale_tempo": {
     "ja": "テンポ",
     "en": "Tempo",
@@ -2587,36 +2670,59 @@ function makeLimiter(){
 
 let refToneOsc = null, refToneGain = null, refToneMidi = null, refToneOct = 4;
 
-// 基準音ロータリー: 縦に音名を積む (上=高音 / 下=低音)。タップで再生/停止。
-(function buildRefRotary() {
+// 基準音ロータリー: 1オクターブ分を縦に積む (上=高音 / 下=低音)。
+// バー下のオクターブ選択で表示オクターブを切替。タップで再生/停止。
+let refOct = 4;                       // 既定 = 4オクターブ(B♭4=midi70 を含む)
+const REF_OCT_MIN = 2, REF_OCT_MAX = 6;
+
+function refNoteClick(midi) {
+  if (refToneMidi === midi) {
+    stopRefToneManual();
+    document.getElementById('prac-start-btn').className = 'btn btn-success';
+    return;
+  }
+  if (pracActive) stopPractice();
+  playRefToneManual(midi);
+  const pb = document.getElementById('prac-start-btn');
+  pb.className = 'btn'; pb.style.display = '';
+  document.getElementById('prac-stop-btn').style.display = 'none';
+}
+
+function renderRefNotes() {
   const col = document.getElementById('ref-rotary');
   if (!col) return;
-  const LOW = 48, HIGH = 84; // C3〜C6
-  for (let midi = HIGH; midi >= LOW; midi--) {
+  col.innerHTML = '';
+  // C..B (pc 0..11) を 高音(B)→低音(C) に積む
+  for (let pc = 11; pc >= 0; pc--) {
+    const midi = 12 * (refOct + 1) + pc;   // 科学的オクターブ: midi60 = C4
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'ref-note';
     b.dataset.midi = midi;
     b.textContent = noteLabel(midi);
-    b.addEventListener('click', () => {
-      if (refToneMidi === midi) {
-        stopRefToneManual();
-        document.getElementById('prac-start-btn').className = 'btn btn-success';
-        return;
-      }
-      if (pracActive) stopPractice();
-      playRefToneManual(midi);
-      const pb = document.getElementById('prac-start-btn');
-      pb.className = 'btn'; pb.style.display = '';
-      document.getElementById('prac-stop-btn').style.display = 'none';
-    });
+    if (refToneMidi === midi) b.classList.add('sel');
+    b.addEventListener('click', () => refNoteClick(midi));
     col.appendChild(b);
   }
-  // 既定 B♭4 (midi 70) を中央に表示 (未再生・ハイライトなし)
-  const def = col.querySelector('.ref-note[data-midi="70"]');
-  if (def) requestAnimationFrame(() => {
-    col.scrollTop = Math.max(0, def.offsetTop - col.clientHeight / 2 + def.offsetHeight / 2);
-  });
+}
+
+(function buildRefOctave() {
+  const sel = document.getElementById('ref-oct-sel');
+  if (!sel) return;
+  for (let o = REF_OCT_MIN; o <= REF_OCT_MAX; o++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.oct = o;
+    b.textContent = o;
+    if (o === refOct) b.classList.add('sel');
+    b.addEventListener('click', () => {
+      refOct = o;
+      sel.querySelectorAll('button').forEach(x => x.classList.toggle('sel', +x.dataset.oct === o));
+      renderRefNotes();
+    });
+    sel.appendChild(b);
+  }
+  renderRefNotes();
 })();
 
 function playRefToneManual(midi) {
@@ -4966,6 +5072,7 @@ function updateBpmUI(bpm) {
     b.classList.toggle('sel', +b.dataset.bpm === bpm);
   });
   if (typeof syncMetroMini === 'function') syncMetroMini();
+  if (typeof syncMetroBadges === 'function') syncMetroBadges();
 }
 
 document.getElementById('rhythm-bpm-slider').addEventListener('input', function() {
@@ -5204,6 +5311,7 @@ function startRhythm() {
   scheduleRhythm();
   // startPendulum(); // 振り子は廃止
   if (typeof syncMetroMini === 'function') syncMetroMini();
+  if (typeof syncMetroBadges === 'function') syncMetroBadges();
 }
 
 function stopRhythm() {
@@ -5213,10 +5321,11 @@ function stopRhythm() {
   cancelScheduledClicks(); // 予約済みクリック音を即座に消音
   document.getElementById('rhythm-start-btn').style.display = '';
   document.getElementById('rhythm-stop-btn').style.display = 'none';
-  document.getElementById('rhythm-beat-dots').textContent = '○'.repeat(rhythmMeter);
+  var _beatDots = document.getElementById('rhythm-beat-dots'); if (_beatDots) _beatDots.textContent = '○'.repeat(rhythmMeter);
   var _bigDots = document.getElementById('rhythm-dots-big'); if (_bigDots) _bigDots.textContent = '○'.repeat(rhythmMeter);
   document.getElementById('rhythm-timing-display').textContent = '—';
   if (typeof syncMetroMini === 'function') syncMetroMini();
+  if (typeof syncMetroBadges === 'function') syncMetroBadges();
 }
 
 function scheduleRhythm() {
@@ -5420,6 +5529,24 @@ function getClickBuffer(sound, fundamentalHz, durMs){
   var n = Math.max(1, Math.floor(sr * durMs / 1000));
   var buf = audioCtx.createBuffer(1, n, sr);
   var d = buf.getChannelData(0);
+  // 機械式: 無音程(ホワイトノイズ系)の広帯域ノイズを極短時間で即減衰 → 機械式メトロの「カチッ」
+  if (sound === 'mechanical') {
+    // アクセント/サブ/通常の周波数差を「明るさ(高域強調)」に写像(高いほど鋭い)
+    var bright = Math.max(0.3, Math.min(0.9, f / 1600));
+    var hp = 0, lastIn = 0;              // 1次ハイパス(前値差分)で高域を強調
+    var rate = 380;                      // 指数減衰レート(e-fold≈2.6ms)
+    for (var mi = 0; mi < n; mi++) {
+      var white = Math.random() * 2 - 1;
+      hp = hp + white - lastIn; lastIn = white;              // 微分 = ハイパス
+      var sig = white * (1 - bright) + hp * bright;          // 低域残しつつ高域を混ぜる
+      var menv = Math.exp(-(mi / sr) * rate);
+      // 先頭1サンプルの不連続を避ける極短フェードイン
+      if (mi < 24) menv *= mi / 24;
+      d[mi] = sig * menv * 1.1;
+    }
+    _clickBufCache[key] = buf;
+    return buf;
+  }
   var attack = ({ wood:0.002, electronic:0.0003, electronicHigh:0.0002, claves:0.0008 })[sound];
   var aF = Math.max(1, Math.floor(sr * attack));
   var sF = Math.max(1, Math.floor(sr * 0.020));
@@ -5450,7 +5577,7 @@ function scheduleClick(time, isAccent, isSub) {
   ensureRhythmMaster();
   var sound = getMetroSound();
   var baseHz = isAccent ? 1200 : (isSub ? 1000 : 800);   // iOS準拠の拍別周波数
-  var durScale = ({ wood:1.0, electronic:0.55, electronicHigh:0.50, claves:0.7 })[sound];
+  var durScale = ({ wood:1.0, electronic:0.55, electronicHigh:0.50, claves:0.7, mechanical:0.16 })[sound];
   var durMs = 150 * durScale;
   var buf = getClickBuffer(sound, baseHz, durMs);
   var src = audioCtx.createBufferSource();
@@ -7386,8 +7513,8 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
           ja: '「Pitch Feedback」を押すと、吹いた音に合わせて正しいピッチのサイン波が自動再生されます。',
           en: '"Pitch Feedback" auto-plays a sine wave matching the correct pitch of your note.',
           zh: '"Pitch Feedback"自动播放与你吹奏音高匹配的正弦波。' },
-        { target: '#ref-tone-grid', pos: 'bottom',
-          ja: '音名をタップすると基準音が再生されます。オクターブも変更可能。ロングトーン練習に最適！',
+        { target: '#ref-rotary', pos: 'bottom',
+          ja: '右のバーで音名をタップすると基準音が再生されます。下のボタンでオクターブも変更可能。ロングトーン練習に最適！',
           en: 'Tap a note to play a reference tone. Octave adjustable. Great for long-tone practice!',
           zh: '点击音名播放参考音。可调八度。适合长音练习！' },
         { target: '#graph-wrap', pos: 'top',
@@ -7399,22 +7526,22 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
     rhythm: {
       tab: 'rhythm',
       steps: [
-        { target: '#rhythm-bpm-slider', pos: 'bottom',
-          ja: 'BPMスライダーでテンポを設定。数値入力も可能です。',
-          en: 'Set tempo with the BPM slider. Direct number input also works.',
-          zh: '用BPM滑块设置速度。也可以直接输入数字。' },
-        { target: '#tap-tempo-btn', pos: 'bottom',
-          ja: '🎤 Tapを押してから手拍子を4回！テンポを自動検出してメトロノームが開始します。',
-          en: 'Press 🎤 Tap, then clap 4 times! Auto-detects tempo and starts the metronome.',
-          zh: '按🎤 Tap，然后拍手4次！自动检测速度并启动节拍器。' },
-        { target: '#rhythm-beat-dots', pos: 'bottom',
-          ja: '●○でビートカウント位置がひと目でわかります。',
-          en: '●○ dots indicate beat count position at a glance.',
-          zh: '●○圆点一目了然地显示节拍计数位置。' },
-        { target: '#rhythm-heatmap', pos: 'top',
-          ja: 'タイミング履歴：各拍のずれをドットで表示。緑=正確、黄=やや、赤=ずれ大。',
-          en: 'Timing history: dots show deviation per beat. Green=accurate, yellow=close, red=off.',
-          zh: '时间历史：圆点显示每拍偏差。绿=准确，黄=接近，红=偏差大。' },
+        { target: '#metro-bpm-open', pos: 'top',
+          ja: '♩= の数字をタップするとテンポ設定が開きます。± で微調整も。',
+          en: 'Tap the ♩= number to open tempo settings. Fine-tune with ± too.',
+          zh: '点击♩=数字打开速度设置。也可用±微调。' },
+        { target: '#metro-sig-badge', pos: 'top',
+          ja: '「4/4」をタップで拍子を変更できます。',
+          en: 'Tap "4/4" to change the time signature.',
+          zh: '点击"4/4"更改拍号。' },
+        { target: '#metro-visual-dial', pos: 'top',
+          ja: '表示ダイヤルで 振り子／玉+振り子／玉 を切替。左は音色（木・電子音・クラベス・機械式）。',
+          en: 'Display dial cycles pendulum / both / beats. The left dial picks the click sound.',
+          zh: '显示拨盘切换钟摆/两者/拍点。左侧拨盘选择节拍音色。' },
+        { target: '#rhythm-start-btn', pos: 'top',
+          ja: '中央の ▶ でメトロノームがスタート。振り子が拍を刻みます。',
+          en: 'The center ▶ starts the metronome. The pendulum keeps the beat.',
+          zh: '中央的▶启动节拍器。钟摆为你打拍子。' },
       ]
     },
     harmony: {
@@ -7644,7 +7771,7 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
   //   angle = maxDeg × edgeCurveNorm(phase),  phase = 累積拍(2拍周期)
   // 滑らかさ: rAFで毎フレームJS更新するとメインスレッド負荷でカクつくため、
   //   Web Animations API でキーフレーム化 → **コンポジタスレッド駆動**(メイン詰まりと無関係)。
-  var MAX_DEG = 28, EDGE_SHARP = 0.18, RING_LEAD = 0.03;
+  var MAX_DEG = 44, EDGE_SHARP = 0.18, RING_LEAD = 0.03;
   var pendAnims = [], pendResync = null;  // 複数の .pend-arm (チューナー小+リズム大) を同時駆動
 
   function edgeCurveNorm(phase){
@@ -7747,32 +7874,127 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
      ============================================================ -->
 <script>
 (function(){
-  function getMetroVisual(){ try { return localStorage.getItem('metro-visual') || 'pendulum'; } catch(e){ return 'pendulum'; } }
+  // 表示モード: 振り子 / 玉+振り子 / 玉 の3段階 (iPhone PendulumDisplayMode 準拠)
+  var VIS_ORDER = ['pendulum','both','dots'];
+  var VIS_KEY = { pendulum:'metro_pendulum', both:'metro_both', dots:'metro_dots' };
+  var SND_ORDER = ['wood','electronic','electronicHigh','claves','mechanical'];
+  var SND_KEY = { wood:'metro_wood', electronic:'metro_elec', electronicHigh:'metro_elec2', claves:'metro_claves', mechanical:'metro_mech' };
+  var TR = (typeof t === 'function') ? t : function(k){ return k; };
+
+  function getMetroVisual(){ try { var v = localStorage.getItem('metro-visual') || 'pendulum'; return (v==='both'||v==='dots'||v==='pendulum')?v:'pendulum'; } catch(e){ return 'pendulum'; } }
   function setMetroVisual(v){ try { localStorage.setItem('metro-visual', v); } catch(e){} }
+
   function applyMetroVisual(){
     var v = getMetroVisual();
-    var pc = document.getElementById('rhythm-pendulum-card'), dc = document.getElementById('rhythm-dots-card');
-    if (pc) pc.style.display = (v === 'pendulum') ? '' : 'none';
-    if (dc) dc.style.display = (v === 'dots') ? '' : 'none';
+    var pend = document.getElementById('rhythm-pendulum'), dots = document.getElementById('rhythm-dots-big');
+    if (pend) pend.style.display = (v === 'dots') ? 'none' : '';          // 玉のみ以外は振り子表示
+    if (dots) dots.style.display = (v === 'pendulum') ? 'none' : '';       // 振り子のみ以外は玉表示
     document.querySelectorAll('#metro-visual-seg button').forEach(function(b){ b.classList.toggle('sel', b.dataset.vis === v); });
+    // ダイヤルのラベル更新 (data-i18n を動的付与 → 言語切替にも追従)
+    var lbl = document.getElementById('metro-visual-val');
+    if (lbl) { lbl.dataset.i18n = VIS_KEY[v]; lbl.textContent = TR(VIS_KEY[v]); }
   }
-  function applyMetroSoundSeg(){
+  function applyMetroSound(){
     var s = (typeof getMetroSound === 'function') ? getMetroSound() : 'wood';
     document.querySelectorAll('#metro-sound-seg button').forEach(function(b){ b.classList.toggle('sel', b.dataset.snd === s); });
+    var lbl = document.getElementById('metro-sound-val');
+    if (lbl) { lbl.dataset.i18n = SND_KEY[s]; lbl.textContent = TR(SND_KEY[s]); }
   }
+  // バッジ (BPM / 拍子) の表示同期。updateBpmUI / メトロ開始停止から呼ばれる。
+  window.syncMetroBadges = function(){
+    var bpm = (typeof rhythmBpm !== 'undefined') ? rhythmBpm : 80;
+    var v = document.getElementById('metro-bpm-val'); if (v) v.textContent = bpm;
+    var tv = document.getElementById('tempo-sheet-val'); if (tv) tv.textContent = bpm;
+    var running = (typeof rhythmActive !== 'undefined') && rhythmActive;
+    var main = document.getElementById('metro-bpm-open'); if (main) main.classList.toggle('running', running);
+    var sel = document.querySelector('#signature-sheet-body .rhythm-meter-btn.sel') || document.querySelector('.rhythm-meter-btn.sel');
+    var badge = document.getElementById('metro-sig-badge');
+    if (badge && sel) { badge.textContent = (sel.textContent || '').trim() || badge.textContent; }
+  };
+
+  function openSheet(id){
+    closeSheets();
+    var s = document.getElementById(id); if (!s) return;
+    s.hidden = false;
+    if (id === 'tempo-sheet') { var b=document.getElementById('metro-bpm-open'); if(b) b.classList.add('open'); }
+    if (id === 'signature-sheet') { var sb=document.getElementById('metro-sig-badge'); if(sb) sb.classList.add('open'); }
+  }
+  function closeSheets(){
+    ['tempo-sheet','signature-sheet'].forEach(function(id){ var s=document.getElementById(id); if(s) s.hidden = true; });
+    var b=document.getElementById('metro-bpm-open'); if(b) b.classList.remove('open');
+    var sb=document.getElementById('metro-sig-badge'); if(sb) sb.classList.remove('open');
+  }
+
   function init(){
+    // --- 旧UIの要素をシートへ移設 (イベントリスナーは保持したまま DOM 移動) ---
+    var tbody = document.getElementById('tempo-sheet-body');
+    var bpmrow = document.getElementById('tempo-move-bpmrow');
+    var presets = document.getElementById('bpm-presets');
+    if (tbody && bpmrow) tbody.appendChild(bpmrow);
+    if (tbody && presets) { presets.style.display = ''; tbody.appendChild(presets); }
+
+    var sbody = document.getElementById('signature-sheet-body');
+    var meters = document.getElementById('sig-move-meters');
+    if (sbody && meters) sbody.appendChild(meters);
+
+    // 旧セグメント(非表示・JS互換用)のクリック配線
     document.querySelectorAll('#metro-visual-seg button').forEach(function(b){
       b.addEventListener('click', function(){ setMetroVisual(b.dataset.vis); applyMetroVisual(); });
     });
     document.querySelectorAll('#metro-sound-seg button').forEach(function(b){
       b.addEventListener('click', function(){
         if (typeof setMetroSound === 'function') setMetroSound(b.dataset.snd);
-        applyMetroSoundSeg();
-        if (typeof playMetroTestClick === 'function') playMetroTestClick(); // 選んだ音を試聴
+        applyMetroSound();
       });
     });
+
+    // --- 表示ダイヤル: タップで3段階循環 ---
+    var vdial = document.getElementById('metro-visual-dial');
+    if (vdial) vdial.addEventListener('click', function(){
+      var cur = getMetroVisual();
+      var next = VIS_ORDER[(VIS_ORDER.indexOf(cur) + 1) % VIS_ORDER.length];
+      setMetroVisual(next); applyMetroVisual();
+    });
+    // --- 音色ダイヤル: タップで循環 (停止中は試聴) ---
+    var sdial = document.getElementById('metro-sound-dial');
+    if (sdial) sdial.addEventListener('click', function(){
+      var cur = (typeof getMetroSound === 'function') ? getMetroSound() : 'wood';
+      var next = SND_ORDER[(SND_ORDER.indexOf(cur) + 1) % SND_ORDER.length];
+      if (typeof setMetroSound === 'function') setMetroSound(next);
+      applyMetroSound();
+      var running = (typeof rhythmActive !== 'undefined') && rhythmActive;   // 走行中は次拍から自動反映
+      if (!running && typeof playMetroTestClick === 'function') playMetroTestClick();
+    });
+
+    // --- BPM ステッパー ---
+    function stepBpm(d){
+      var cur = (typeof rhythmBpm !== 'undefined') ? rhythmBpm : 80;
+      if (typeof updateBpmUI === 'function') updateBpmUI(Math.min(200, Math.max(40, cur + d)));
+    }
+    var minus = document.getElementById('metro-bpm-minus'); if (minus) minus.addEventListener('click', function(){ stepBpm(-1); });
+    var plus  = document.getElementById('metro-bpm-plus');  if (plus)  plus.addEventListener('click', function(){ stepBpm(+1); });
+
+    // --- バッジ → シート開閉 ---
+    var bpmOpen = document.getElementById('metro-bpm-open');
+    if (bpmOpen) bpmOpen.addEventListener('click', function(){
+      var s = document.getElementById('tempo-sheet');
+      if (s && !s.hidden) closeSheets(); else openSheet('tempo-sheet');
+    });
+    var sigBadge = document.getElementById('metro-sig-badge');
+    if (sigBadge) sigBadge.addEventListener('click', function(){
+      var s = document.getElementById('signature-sheet');
+      if (s && !s.hidden) closeSheets(); else openSheet('signature-sheet');
+    });
+    document.querySelectorAll('[data-sheet-close]').forEach(function(el){ el.addEventListener('click', closeSheets); });
+
+    // 拍子ボタンを押したらバッジ更新＋シートを閉じる (既存リスナーと併発)
+    document.querySelectorAll('#signature-sheet-body .rhythm-meter-btn').forEach(function(b){
+      b.addEventListener('click', function(){ window.syncMetroBadges(); closeSheets(); });
+    });
+
     applyMetroVisual();
-    applyMetroSoundSeg();
+    applyMetroSound();
+    window.syncMetroBadges();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
