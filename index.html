@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#fdfcf9" id="meta-theme-color">
 <!-- テーマ早期適用(チラつき防止): 保存値 → 無ければOS設定 → 既定 light -->
-<script>(function(){try{var t=localStorage.getItem('sc-theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem('sc-theme');if(!t)t='light';/* 既定=ライト固定(OSのダーク設定には追従しない)。手動トグルのみダークに */document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <!-- iOS ホーム画面追加対応 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
