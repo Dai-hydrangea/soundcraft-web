@@ -203,6 +203,15 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
 .metro-sheet-body .rhythm-pattern-row { display: flex; gap: 8px; }
 .metro-sheet-body .sig-subhead { font-size: 12px; color: var(--text2); margin: 14px 0 6px; }
 
+/* Safari マイク許可ヒント */
+.mic-safari-hint { display: flex; align-items: flex-start; gap: 8px; background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius: 12px;
+  padding: 10px 12px; margin-bottom: 12px; font-size: 12px; line-height: 1.5; color: var(--text2); }
+.mic-safari-hint[hidden] { display: none; }
+.mic-safari-hint #mic-safari-hint-text { flex: 1; }
+.mic-safari-hint #mic-safari-hint-close { flex: 0 0 auto; background: transparent; border: none; color: var(--text2);
+  font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px; -webkit-tap-highlight-color: transparent; }
+
 /* ===== 計測タブ ===== */
 #now-display { text-align: center; }
 /* チューナー音名表示をiOS風に(見出しなし・音名が主役) */
@@ -541,6 +550,11 @@ tr:last-child td { border-bottom: none; }
 </style>
 <!-- 計測タブ -->
 <div class="panel active" id="panel-measure">
+  <!-- Safari限定: マイク許可を固定する方法のヒント (×で消せる・Safari以外には出ない) -->
+  <div class="mic-safari-hint" id="mic-safari-hint" hidden>
+    <span id="mic-safari-hint-text"></span>
+    <button type="button" id="mic-safari-hint-close" aria-label="close">×</button>
+  </div>
   <!-- 現在の音 -->
   <div class="card no-collapse" id="now-display">
     <div class="tuner-row">
@@ -1890,6 +1904,16 @@ const I18N = {
     "ja": "マイクへのアクセスが拒否されました",
     "en": "Microphone access denied",
     "zh": "麦克风访问被拒绝"
+  },
+  "mic_safari_ios": {
+    "ja": "💡 iPhoneのSafariは毎回マイクを確認します。アドレスバーの「ぁあ」→「Webサイトの設定」→「マイク」→「許可」にすると、次から聞かれなくなります。",
+    "en": "💡 Safari on iPhone asks for mic each time. Tap “aA” in the address bar → “Website Settings” → “Microphone” → “Allow” to stop the prompts.",
+    "zh": "💡 iPhone 上的 Safari 每次都会询问麦克风。点击地址栏“aA”→“网站设置”→“麦克风”→“允许”即可不再询问。"
+  },
+  "mic_safari_mac": {
+    "ja": "💡 Mac Safariは毎回マイクを確認します。メニューの Safari →「設定」→「Webサイト」→「マイク」で当サイトを「許可」にすると、次から聞かれなくなります。",
+    "en": "💡 Safari on Mac asks for mic each time. In the menu, Safari → Settings → Websites → Microphone, set this site to “Allow” to stop the prompts.",
+    "zh": "💡 Mac 上的 Safari 每次都会询问麦克风。菜单 Safari →“设置”→“网站”→“麦克风”，将本站设为“允许”即可不再询问。"
   },
   "waiting": {
     "ja": "待機中…",
@@ -7453,6 +7477,40 @@ document.addEventListener('touchstart', resumeAudioCtx, { passive: true });
   var tried = false;
   function once(){ if (tried) return; tried = true; if (micAutoEnabled() && !isStarted) startMic().catch(function(){}); }
   ['pointerup','click','touchend'].forEach(function(ev){ document.addEventListener(ev, once, { passive: true }); });
+})();
+
+// ============================================================
+// Safari限定: マイク許可を固定する方法のヒント
+// Safari(Mac/iOS)は許可を毎回聞き直す＆Permissions APIを塞ぐため、
+// サイト設定で「許可」に固定する手順を小さく案内する(×で消せる・他ブラウザには出ない)。
+// ============================================================
+(function safariMicHint(){
+  function isSafari(){
+    var ua = navigator.userAgent;
+    var vendorApple = (navigator.vendor || '').indexOf('Apple') > -1;
+    return vendorApple && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|Chrome|Chromium|Android/.test(ua);
+  }
+  function isiOS(){
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOSはMac偽装する
+  }
+  function init(){
+    var box = document.getElementById('mic-safari-hint');
+    if (!box) return;
+    if (!isSafari()) return;                                   // Safari以外には一切出さない
+    try { if (localStorage.getItem('mic-safari-hint-dismissed') === '1') return; } catch(e){}
+    var txt = document.getElementById('mic-safari-hint-text');
+    var key = isiOS() ? 'mic_safari_ios' : 'mic_safari_mac';
+    if (txt) { txt.dataset.i18n = key; txt.textContent = (typeof t === 'function') ? t(key) : ''; }
+    box.hidden = false;
+    var close = document.getElementById('mic-safari-hint-close');
+    if (close) close.addEventListener('click', function(){
+      box.hidden = true;
+      try { localStorage.setItem('mic-safari-hint-dismissed', '1'); } catch(e){}
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })();
 
 // ============================================================
