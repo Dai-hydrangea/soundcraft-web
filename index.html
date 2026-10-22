@@ -130,10 +130,10 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
 .metro-bpm-num small { font-size: 11px; color: var(--text2); margin-top: 3px; letter-spacing: 1px; }
 .metro-mini-hint { text-align: center; font-size: 11px; color: var(--text2); margin-top: 12px; }
 /* 振り子 (iOS v4.7式: 拍で中央通過・端で減速 / GPU合成CSS transformで滑らか) */
-#metro-pendulum { position: relative; width: 160px; height: 104px; margin: 2px auto 10px; }
+#metro-pendulum { position: relative; width: 150px; height: 70px; margin: 0 auto 4px; }
 .pend-base  { position: absolute; left: 50%; bottom: 8px; width: 56px; height: 3px; margin-left: -28px; border-radius: 2px; background: var(--border); }
 .pend-pivot { position: absolute; left: 50%; bottom: 5px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: var(--text2); z-index: 2; }
-.pend-arm   { position: absolute; left: 50%; bottom: 9px; width: 3px; height: 82px; margin-left: -1.5px; transform-origin: 50% 100%; will-change: transform; background: var(--text2); border-radius: 2px; }
+.pend-arm   { position: absolute; left: 50%; bottom: 9px; width: 3px; height: 50px; margin-left: -1.5px; transform-origin: 50% 100%; will-change: transform; background: var(--text2); border-radius: 2px; }
 .pend-bob   { position: absolute; top: -7px; left: 50%; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
 /* リズムタブの大きな振り子 */
 #rhythm-pendulum { position: relative; width: 240px; height: 210px; margin: 6px auto 2px; }
@@ -213,18 +213,23 @@ h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px;
   font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px; -webkit-tap-highlight-color: transparent; }
 
 /* ===== 計測タブ ===== */
+/* チューナータブは縦を詰める: カード余白と内側マージンを圧縮 */
+#panel-measure > .card { padding: 14px; margin-bottom: 10px; }
+#metro-mini-card .metro-mini-top { margin-bottom: 4px; }
+#metro-mini-card .metro-mini-hint { margin-top: 8px; }
+#ref-card .ref-head { margin-bottom: 8px; }
 #now-display { text-align: center; }
 /* チューナー音名表示をiOS風に(見出しなし・音名が主役) */
 #now-display h2 { display: none; }
 #now-display #rms-display { display: none; }
-#now-note { font-size: 86px; font-weight: 700; color: var(--accent); line-height: 1; min-height: 94px; letter-spacing: -1px; margin-top: 6px; }
-#now-cents { display: block; text-align: center; font-size: 19px; font-weight: 600; margin: 0 0 4px; color: var(--text2); font-variant-numeric: tabular-nums; }
+#now-note { font-size: 66px; font-weight: 700; color: var(--accent); line-height: 1; min-height: 70px; letter-spacing: -1px; margin-top: 0; }
+#now-cents { display: block; text-align: center; font-size: 18px; font-weight: 600; margin: 0 0 2px; color: var(--text2); font-variant-numeric: tabular-nums; }
 #now-cents.center { color: var(--accent2); }
 #now-cents.sharp  { color: var(--danger); }
 #now-cents.flat   { color: #4a90d0; }
-#tuner-canvas { width: 100%; height: 62px; }
+#tuner-canvas { width: 100%; height: 44px; }
 
-#state-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: .5px; margin-top: 6px; }
+#state-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: .5px; margin-top: 4px; }
 #state-badge.silent { background: var(--surface2); color: var(--text2); }
 #state-badge.attack { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
 #state-badge.stable { background: color-mix(in srgb, var(--accent2) 22%, transparent); color: var(--accent2); }
@@ -613,7 +618,6 @@ tr:last-child td { border-bottom: none; }
         <button class="ref-oct-step" id="ref-oct-inc" type="button" aria-label="octave up">＋</button>
       </div>
     </div>
-    <div class="ref-hint" data-i18n="select_note">レールをスライドで音名、▶で再生／停止</div>
   </div>
   <!-- メトロノーム (チューナータブ内蔵・エンジンはリズムタブと共有) -->
   <div class="card" id="metro-mini-card">
